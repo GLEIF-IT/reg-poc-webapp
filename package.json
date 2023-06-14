@@ -18,7 +18,7 @@
     "react-dom": "^18.2.0",
     "react-pdf": "^7.0.3",
     "react-router-dom": "^6.11.2",
-    "signify-ts": "https://github.com/provenant-dev/signify-ts/#feat/hold-credentials",
+    "signify-ts": "https://github.com/provenant-dev/signify-ts",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
