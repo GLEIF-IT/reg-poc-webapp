@@ -4,6 +4,7 @@ to run the app use
 yarn run dev
 ```
 It currently only retrieves the identifiers from a localhost keria (line 64 in App.tsx). 
+
 To succesfully log in pick the first 'credential' as well. 
 
 TODO: 
