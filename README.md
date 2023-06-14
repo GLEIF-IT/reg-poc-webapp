@@ -5,6 +5,9 @@ yarn run dev
 ```
 It currently only retrieves the identifiers from a localhost keria (line 64 in App.tsx). 
 To succesfully log in pick the first 'credential' as well. 
+
 TODO: 
-merge https://github.com/WebOfTrust/signify-ts/pull/49/files 
-get credentials and call login() function 
+
+merge https://github.com/WebOfTrust/signify-ts/pull/49/files and get credentials 
+
+call login() function and pass error message (url in line 66 in App.tsx)
