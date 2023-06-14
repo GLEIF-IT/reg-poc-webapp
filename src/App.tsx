@@ -501,9 +501,9 @@ const MainComponent = () => {
                             async () => {
                               setActiveStep(prevStep => prevStep + 1)
                               //call api function from lance and handle it here
-                              await checkStatus()
+                              // await checkStatus()
                               //login real
-                              // await loginReal()
+                              await loginReal()
                             }
                           }
                         >
