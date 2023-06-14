@@ -51,7 +51,7 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import BadgeIcon from '@mui/icons-material/Badge';
 import {
   SignifyClient, ready,
-  //  CredentialTypes 
+   CredentialTypes 
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
 const MainComponent = () => {
@@ -62,6 +62,8 @@ const MainComponent = () => {
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
   // const url = 'https://keria-dev.rootsid.cloud'
   const url = 'http://localhost:3901'
+  // Define the base URL for the API server
+  const baseUrl = 'http://127.0.0.1:8000';
   const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
@@ -83,9 +85,6 @@ const MainComponent = () => {
       console.log("signify client is ready")
     })
   }, [])
-
-  // Define the base URL for the API server
-  const baseUrl = 'http://127.0.0.1:8000';
 
   // Define the endpoint paths
   const pingPath = '/ping';
@@ -183,8 +182,8 @@ const MainComponent = () => {
     //wait for 2 seconds
     await new Promise(r => setTimeout(r, 2000));
 
-    let _aids = ['EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk', 'EHCQxd86mjMk_sMhB7XH5PJrObCmYBiv8wZ7zIZr0kLC', 'EA7mBw8OLM597_yRCr6OaYXUCyTXHgk1Hy214jB6yMmd']
-    let _acdcs = ['EAIcKG4UERhMZpX0M43sFr3qUDJDtRMZpX0MdpZ9z1', 'EBIcAFV1EqUDJDtRbgSMs44aBIcKAtRbQzHEdmpZ9z2', 'ECIcKAVUERhMZpX0MCgSMs7a65RrJDtRbQzHd66mpZ9z3']
+    let _aids = ['EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk']
+    let _acdcs = ['EJYGavdmOrtMh022whOAiqd59ZA5ikHuBTSjlACJ880K']
     //
     if (selectedOption1 === _aids[0] && selectedOption2 === _acdcs[0]) {
       return 'Connected'
@@ -404,7 +403,6 @@ const MainComponent = () => {
                             const _ids = await identifiers.list_identifiers()
                             console.log(_ids)
                             setAids(_ids)
-                            // const credentials = client.credentials()
                             setActiveStep(prevStep => prevStep + 1)
                           }
                         }
@@ -430,7 +428,24 @@ const MainComponent = () => {
                         variant="contained"
                         color="primary"
                         disabled={selectedOption1 === ''}
-                        onClick={() => { setModalError(''), setActiveStep(prevStep => prevStep + 1), setAcdcs(['EAIcKG4UERhMZpX0M43sFr3qUDJDtRMZpX0MdpZ9z1', 'EBIcAFV1EqUDJDtRbgSMs44aBIcKAtRbQzHEdmpZ9z2', 'ECIcKAVUERhMZpX0MCgSMs7a65RrJDtRbQzHd66mpZ9z3']) }}
+                        onClick={async () => { 
+                          setModalError('')
+                          const credentials = client.credentials()
+                          const _creds = await credentials.list(selectedOption1,CredentialTypes.received,'')
+                          console.log(_creds)
+                          let saids : string[] = [];
+                          _creds.forEach(cred => {
+                            saids.push(cred['sad']['d'])
+                          })
+
+
+                          setActiveStep(prevStep => prevStep + 1)
+                          setAcdcs(saids)
+                          // setAcdcs(['EAIcKG4UERhMZpX0M43sFr3qUDJDtRMZpX0MdpZ9z1', 'EBIcAFV1EqUDJDtRbgSMs44aBIcKAtRbQzHEdmpZ9z2', 'ECIcKAVUERhMZpX0MCgSMs7a65RrJDtRbQzHd66mpZ9z3']) 
+
+                        }
+                      
+                      }
                       >
                         Next
                       </Button>
