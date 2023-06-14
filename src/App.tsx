@@ -180,9 +180,12 @@ const MainComponent = () => {
     let _acdcs = ['EJYGavdmOrtMh022whOAiqd59ZA5ikHuBTSjlACJ880K']
     //
     if (selectedOption1 === _aids[0] && selectedOption2 === _acdcs[0]) {
-      return 'Connected'
+      setStatus('Connected')
+      return 
     }
-    return 'Not Connected'
+    setModalError('Pick a different credential/identifier pair')
+    setStatus('Failed')
+
   }
 
 
@@ -467,15 +470,9 @@ const MainComponent = () => {
                           async () => {
                             setActiveStep(prevStep => prevStep + 1)
                             //call api function from lance and handle it here
-                            let res = await checkStatus()
-                            console.log(res)
-                            if (res === 'Connected') {
-                              setStatus('Connected')
-                            }
-                            else {
-                              setModalError('Pick a different credential/identifier pair')
-                              setStatus('Failed')
-                            }
+                            await checkStatus()
+                            //login real
+                            //await loginReal()
                           }
                         }
                       >
