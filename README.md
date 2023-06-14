@@ -3,6 +3,8 @@ to run the app use
 ```yarn install
 yarn run dev
 ```
+plase follow the https://github.com/WebOfTrust/signifypy/tree/main/scripts before spinning this up
+
 It currently only retrieves the identifiers from a localhost keria (line 64 in App.tsx). 
 
 To succesfully log in pick the first 'credential' as well. 
