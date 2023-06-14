@@ -143,10 +143,18 @@ const MainComponent = () => {
   };
 
   const handleClose = () => {
-    if (client !== null && status !== 'Connected')
-      return;
-    setOpen(false);
-    setModalError('')
+    if (status === 'Connected') {
+      setOpen(false);
+    } else {
+      setOpen(false);
+      setModalError('')
+      setActiveStep(0);
+      setClient(null);
+      setSelectedOption1('');
+      setSelectedOption2('');
+      setStatus('Connect');
+      setPasscode('');
+    }
 
   };
 
@@ -161,13 +169,16 @@ const MainComponent = () => {
 
     let logged_in = await login(selectedOption1, selectedOption2, vlei_cesr)
     console.log(logged_in)
-    if (logged_in.status === 'success') {
+    if (logged_in.aid === selectedOption1) {
       setStatus('Connected')
       setModalError('')
     }
-    else {
+    else if(JSON.stringify(logged_in).includes('Exception')){
       setStatus('Failed')
       setModalError('Login Failed. Please pick different credential')
+    } else {
+      setStatus('Processing...')
+      setModalError('Waiting for verificaiton')
     }
 
   }
@@ -399,8 +410,14 @@ const MainComponent = () => {
                             const identifiers = client.identifiers()
                             const _ids = await identifiers.list_identifiers()
                             console.log(_ids)
-                            setAids(_ids)
-                            setActiveStep(prevStep => prevStep + 1)
+                            if (_ids.length === 0) {
+                              setModalError('No identifiers found. Please add one from the agent')
+                              setStatus('Connecting')
+                              return
+                            } else {
+                              setAids(_ids)
+                              setActiveStep(prevStep => prevStep + 1)
+                            }
                           }
                         }
                       >
@@ -470,9 +487,9 @@ const MainComponent = () => {
                           async () => {
                             setActiveStep(prevStep => prevStep + 1)
                             //call api function from lance and handle it here
-                            await checkStatus()
+                            //await checkStatus()
                             //login real
-                            //await loginReal()
+                            await loginReal()
                           }
                         }
                       >
