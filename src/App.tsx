@@ -91,17 +91,6 @@ const MainComponent = () => {
   const loginPath = '/login';
 
   // Function to handle the API request and response
-  async function handleApiResponse(response: Response) {
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    // Parse the JSON response
-    const data = await response.json();
-
-    // Return the parsed response data
-    return data;
-  }
 
   // Function to perform the ping request
   async function ping(): Promise<string> {
@@ -109,7 +98,7 @@ const MainComponent = () => {
 
     // Make the API request using the fetch function
     const response = await fetch(url);
-    const responseData = await handleApiResponse(response);
+    const responseData = await response.json();
 
     // Return the pong message
     return responseData;
@@ -135,7 +124,7 @@ const MainComponent = () => {
       body: JSON.stringify(requestBody)
     });
 
-    const responseData = await handleApiResponse(response);
+    const responseData = await response.json();
 
     // Return the response data
     return responseData;
@@ -161,22 +150,27 @@ const MainComponent = () => {
 
   };
 
-  // const loginReal = async () => {
-  //   //wait for 2 seconds
-  //   await new Promise(r => setTimeout(r, 2000));
-  //   //generate a random number between 0 and 1
+  const loginReal = async () => {
+    //wait for 2 seconds
+    // await new Promise(r => setTimeout(r, 2000));
+    //generate a random number between 0 and 1
 
-  //   const creds = client.credentials()
-  //   let rs = await creds.list(selectedOption1.prefix,CredentialTypes.received,'')
-  //   console.log(rs)
-  //   let said = rs[0]['sad']['d']
-  //   let resp = await creds.export(selectedOption1.prefix,said)
-  //   console.log(resp)
+    const creds = client.credentials()
+    let vlei_cesr = await creds.export(selectedOption1,selectedOption2)
+    console.log(vlei_cesr)
 
-  //   let logged_in = await login(selectedOption1.prefix, said, resp)
-  //   console.log(logged_in)
+    let logged_in = await login(selectedOption1, selectedOption2, vlei_cesr)
+    console.log(logged_in)
+    if (logged_in.status === 'success') {
+      setStatus('Connected')
+      setModalError('')
+    }
+    else {
+      setStatus('Failed')
+      setModalError('Login Failed. Please pick different credential')
+    }
 
-  // }
+  }
   //create async function that wait for 2 seconds and either return 'in progress' or 'almost done' with a 40% chance
   const checkStatus = async () => {
     //wait for 2 seconds
