@@ -846,6 +846,8 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
         // const jsonData = await response.json();
         // await new Promise(r => setTimeout(r, 1200));
         let d = await checkUpload(selectedAid, selectedAcdc)
+        //TODO: hack to make it a list
+        d = [d]
         setData(d);
         setLoading(false);
       } catch (error) {
@@ -920,7 +922,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {[data].map((item: any) => (
+            {data.map((item: any) => (
               <TableRow key={new Date().toISOString()} onClick={() => handleRowClick(item)}>
                 {/* <TableCell>{item.name}</TableCell> */}
                 <TableCell>{item.size}</TableCell>
