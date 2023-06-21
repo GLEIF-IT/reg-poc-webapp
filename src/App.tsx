@@ -55,6 +55,10 @@ import {
   CredentialTypes
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
+
+const uploadPath = '/upload';
+const baseUrl = 'http://127.0.0.1:8000';
+
 const MainComponent = () => {
 
   const [selectedComponent, setSelectedComponent] = useState(null);
@@ -64,7 +68,6 @@ const MainComponent = () => {
   // const url = 'https://keria-dev.rootsid.cloud'
   const url = 'http://localhost:3901'
   // Define the base URL for the API server
-  const baseUrl = 'http://127.0.0.1:8000';
   const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
@@ -496,9 +499,9 @@ const MainComponent = () => {
                           async () => {
                             setActiveStep(prevStep => prevStep + 1)
                             //call api function from lance and handle it here
-                            await checkStatus()
+                            // await checkStatus()
                             //login real
-                            // await loginReal()
+                            await loginReal()
                           }
                         }
                       >
@@ -560,6 +563,8 @@ const MainComponent = () => {
       {/* {selectedComponent === 'Upload Report' && client !== null && <TextComponent text='Upload Report' />} */}
       {selectedComponent === 'Check Status' && client !== null && <MyTable
         setSelectedComponent={setSelectedComponent}
+        selectedAcdc={selectedOption2}
+        selectedAid={selectedOption1}
       />}
       {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
         errorUpload={errorUpload}
@@ -570,6 +575,8 @@ const MainComponent = () => {
         setSelectedFile={setSelectedFile}
         setSelectedComponent={setSelectedComponent}
         resetAidSelected={resetAidSelected}
+        selectedAcdc={selectedOption2}
+        selectedAid={selectedOption1}
       />}
 
     </Box>
@@ -606,7 +613,7 @@ const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
 )
 
 
-const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected }) => {
+const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
 
 
   useEffect(() => {
@@ -644,11 +651,35 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     event.preventDefault();
   };
 
+  // Function to perform the upload request
+  async function upload(aid: string, said: string, report: string): Promise<any> {
+    const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
+
+    const formData = new FormData();
+    formData.append('upload', report); 
+
+    // Make the API request using the fetch function
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'accept': 'application/json'
+      },
+      body: formData
+    });
+
+    const responseData = await response.json();
+
+    // Return the response data
+    return responseData;
+  }
+
   const handleSubmit = async () => {
     // Add your upload logic her
     setSubmitResult('uploading')
     //wait 2 seconds
-    await new Promise(r => setTimeout(r, 2000));
+    //await new Promise(r => setTimeout(r, 2000));
+    await upload(selectedAid, selectedAcdc, selectedFile)
 
     setSubmitResult(`done|${selectedFile.name}`)
     // await new Promise(r => setTimeout(r, 2000));
@@ -771,7 +802,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
   );
 };
 
-const MyTable = ({ setSelectedComponent }) => {
+const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
   const [data, setData] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [openModalTable, setOpenModalTable] = useState(false);
@@ -813,8 +844,9 @@ const MyTable = ({ setSelectedComponent }) => {
         setLoading(true);
         // const response = await fetch('https://api.example.com/data');
         // const jsonData = await response.json();
-        await new Promise(r => setTimeout(r, 1200));
-        setData(demoData);
+        // await new Promise(r => setTimeout(r, 1200));
+        let d = await checkUpload(selectedAid, selectedAcdc)
+        setData(d);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -832,6 +864,24 @@ const MyTable = ({ setSelectedComponent }) => {
   const handleCloseModal = () => {
     setOpenModalTable(false);
   };
+
+  // Function to perform the upload request
+  async function checkUpload(aid: string, said: string): Promise<any> {
+    const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
+
+    // Make the API request using the fetch function
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json'
+      },
+    });
+
+    const responseData = await response.json();
+
+    // Return the response data
+    return responseData;
+  }
 
   return (
     <Box
@@ -863,18 +913,18 @@ const MyTable = ({ setSelectedComponent }) => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              {/* <TableCell>Name</TableCell> */}
               <TableCell>Size</TableCell>
-              <TableCell>Date Uploaded</TableCell>
+              {/* <TableCell>Date Uploaded</TableCell> */}
               <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item: any) => (
-              <TableRow key={item.id} onClick={() => handleRowClick(item)}>
-                <TableCell>{item.name}</TableCell>
+            {[data].map((item: any) => (
+              <TableRow key={new Date().toISOString()} onClick={() => handleRowClick(item)}>
+                {/* <TableCell>{item.name}</TableCell> */}
                 <TableCell>{item.size}</TableCell>
-                <TableCell>{item.dateUploaded}</TableCell>
+                {/* <TableCell>{item.dateUploaded}</TableCell> */}
                 <TableCell>{item.status}</TableCell>
               </TableRow>
             ))}
