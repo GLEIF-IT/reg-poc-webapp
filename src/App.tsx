@@ -662,7 +662,6 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'multipart/form-data',
         'accept': 'application/json'
       },
       body: formData
@@ -831,10 +830,10 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
 
   ];
   const _fakedata = [
-    { id: 1, name: 'File 1', size: '10 MB', dateUploaded: '2023-06-01', status: 'Uploaded' },
-    { id: 2, name: 'File 2', size: '5 MB', dateUploaded: '2023-06-02', status: 'Failed' },
-    { id: 3, name: 'File 3', size: '2 MB', dateUploaded: '2023-06-03', status: 'Uploaded' },
-    { id: 4, name: 'File 4', size: '1 MB', dateUploaded: '2023-06-04', status: 'Processing' },
+    { filename: 'File 1', size: '10 MB', message: 'last update 2023-06-01', status: 'Uploaded' },
+    { filename: 'File 2', size: '5 MB', message: 'last update 2023-06-02', status: 'Failed' },
+    { filename: 'File 3', size: '2 MB', message: 'last update 2023-06-03', status: 'Uploaded' },
+    { filename: 'File 4', size: '1 MB', message: 'last update 2023-06-04', status: 'Processing' },
   ]
   useEffect(() => {
     // Simulating fetch request
@@ -915,19 +914,19 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
         <Table>
           <TableHead>
             <TableRow>
-              {/* <TableCell>Name</TableCell> */}
+              <TableCell>File</TableCell>
               <TableCell>Size</TableCell>
-              {/* <TableCell>Date Uploaded</TableCell> */}
               <TableCell>Status</TableCell>
+              <TableCell>Message</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((item: any) => (
-              <TableRow key={new Date().toISOString()} onClick={() => handleRowClick(item)}>
-                {/* <TableCell>{item.name}</TableCell> */}
+              <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
+                <TableCell>{item.filename}</TableCell>
                 <TableCell>{item.size}</TableCell>
-                {/* <TableCell>{item.dateUploaded}</TableCell> */}
                 <TableCell>{item.status}</TableCell>
+                <TableCell>{item.message}</TableCell>
               </TableRow>
             ))}
           </TableBody>
