@@ -85,7 +85,7 @@ const MainComponent = () => {
 
   useEffect(() => {
     ready().then(() => {
-      console.log("signify client is ready");
+      console.log("signify client is ready", url, baseUrl);
     })
   }, [])
 
