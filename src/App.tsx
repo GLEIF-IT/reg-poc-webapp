@@ -55,11 +55,11 @@ import {
   CredentialTypes
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
-import 'dotenv/config';
 
 const uploadPath = '/upload';
-const url = process.env.KERIA;
-const baseUrl = process.env.SERVER;
+const url = import.meta.env.VITE_KERI_URL;
+const baseUrl = import.meta.env.VITE_SERVER_URL;
+
 const MainComponent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [client, setClient] = useState<any | null>(null);
@@ -85,7 +85,7 @@ const MainComponent = () => {
 
   useEffect(() => {
     ready().then(() => {
-      console.log("signify client is ready")
+      console.log("signify client is ready");
     })
   }, [])
 
@@ -653,7 +653,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
 
     const formData = new FormData();
-    formData.append('upload', report); 
+    formData.append('upload', report);
 
     // Make the API request using the fetch function
     const response = await fetch(url, {
