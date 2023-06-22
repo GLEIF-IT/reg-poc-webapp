@@ -55,19 +55,16 @@ import {
   CredentialTypes
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
+import 'dotenv/config';
 
 const uploadPath = '/upload';
-const baseUrl = 'http://127.0.0.1:8000';
-
+const url = process.env.KERIA;
+const baseUrl = process.env.SERVER;
 const MainComponent = () => {
-
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
-  // const url = 'https://keria-dev.rootsid.cloud'
-  const url = 'http://localhost:3901'
-  // Define the base URL for the API server
   const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
