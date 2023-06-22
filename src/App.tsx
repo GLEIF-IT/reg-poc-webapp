@@ -57,17 +57,14 @@ import {
 import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
-const baseUrl = 'http://127.0.0.1:8000';
+const url = import.meta.env.VITE_KERI_URL;
+const baseUrl = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
-
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
-  // const url = 'https://keria-dev.rootsid.cloud'
-  const url = 'http://localhost:3901'
-  // Define the base URL for the API server
   const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
@@ -88,7 +85,7 @@ const MainComponent = () => {
 
   useEffect(() => {
     ready().then(() => {
-      console.log("signify client is ready")
+      console.log("signify client is ready", url, baseUrl);
     })
   }, [])
 
@@ -656,7 +653,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
 
     const formData = new FormData();
-    formData.append('upload', report); 
+    formData.append('upload', report);
 
     // Make the API request using the fetch function
     const response = await fetch(url, {
