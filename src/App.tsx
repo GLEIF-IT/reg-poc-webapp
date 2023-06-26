@@ -442,7 +442,7 @@ const MainComponent = () => {
                       >
                         {aids.map((aid, index) => (
                           <Tooltip title={aid.prefix} placement="right" key={aid.prefix}>
-                            <FormControlLabel key={index} value={aid.prefix} control={<Radio />} label={aid.name} />
+                            <FormControlLabel key={index} value={aid.name} control={<Radio />} label={aid.name} />
                           </Tooltip>
                         ))}
                       </RadioGroup>
