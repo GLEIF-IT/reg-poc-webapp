@@ -39,8 +39,7 @@ import {
   Divider,
   // ListItemButton,
   ListItemIcon,
-  Fab,
-  listItemTextClasses
+  Fab
 } from '@mui/material';
 import {
   Circle, FileUpload, Menu,
@@ -59,17 +58,14 @@ import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
-const baseUrl = 'http://127.0.0.1:8000';
+const url = import.meta.env.VITE_KERI_URL;
+const baseUrl = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
-
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
-  // const url = 'https://keria-dev.rootsid.cloud'
-  const url = 'http://localhost:3901'
-  // Define the base URL for the API server
   const [passcode, setPasscode] = useState('');
   const [status, setStatus] = useState('Connect');
   const [selectedOption1, setSelectedOption1] = useState(''); // Step 2 Selection
@@ -81,16 +77,13 @@ const MainComponent = () => {
   const [errorUpload, setErrorUpload] = useState('');
   const [submitResult, setSubmitResult] = useState('');
 
-  let _aids: string[] = [];
   const [aids, setAids] = useState([]);
-
-  let _acdcs: string[] = [];
   const [acdcs, setAcdcs] = useState([]);
 
 
   useEffect(() => {
     ready().then(() => {
-      console.log("signify client is ready")
+      console.log("signify client is ready", url, baseUrl);
     })
   }, [])
 
@@ -211,7 +204,7 @@ const MainComponent = () => {
     setSelectedComponent(componentName);
   };
 
-  const getSelectedAid = (aid: string) => {
+  const getSelectedAid = () => {
     const aid_found = aids.find(aid => aid.prefix === selectedOption1)
     if (aid_found !== undefined) {
       return aid_found
@@ -220,7 +213,7 @@ const MainComponent = () => {
     return
   }
 
-  const getSelectedAcdc = (acdc: string) => {
+  const getSelectedAcdc = () => {
     const acdc_found = acdcs.find(acdc => acdc.sad.d === selectedOption2)
     if (acdc_found !== undefined) {
       return acdc_found
@@ -658,7 +651,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
 
     const formData = new FormData();
-    formData.append('upload', report); 
+    formData.append('upload', report);
 
     // Make the API request using the fetch function
     const response = await fetch(url, {
@@ -848,15 +841,15 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
         // await new Promise(r => setTimeout(r, 1200));
         let d = await checkUpload(selectedAid)
         console.log("Response data is type and data",typeof(d),d)
-        let newData = Array<any>()
+        let newData = new Set<any>()
         let statuses = Object.keys(d).map((item: any) => {
           return d[item].map((status: any) => {
-            newData.push(JSON.parse(status))
+            newData.add(JSON.parse(status))
           })
         });
         console.log("Status data converted type and data",typeof(statuses),statuses)
         console.log("New data converted type and data",typeof(newData),newData)
-        setData(newData)
+        setData(Array.from(newData))
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
