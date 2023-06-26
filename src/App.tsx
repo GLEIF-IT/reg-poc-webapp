@@ -453,7 +453,7 @@ const MainComponent = () => {
                         onClick={async () => {
                           setModalError('')
                           const credentials = client.credentials()
-                          const _creds = await credentials.list(selectedOption1, CredentialTypes.received, '')
+                          const _creds = await credentials.list(getSelectedAid(selectedOption1)?.name, CredentialTypes.received, '')
                           let saids: string[] = [];
                           _creds.forEach(cred => {
                             saids.push(cred)
