@@ -1977,9 +1977,9 @@ signal-exit@^3.0.0:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.7.tgz#a9a1767f8af84155114eaabd73f99273c8f59ad9"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
 
-"signify-ts@https://github.com/WebOfTrust/signify-ts":
+"signify-ts@https://github.com/provenant-dev/signify-ts":
   version "0.1.1"
-  resolved "https://github.com/WebOfTrust/signify-ts#4f85cb66abd9a14c4e77f68e51e94f8487dbc373"
+  resolved "https://github.com/provenant-dev/signify-ts#415324a4773dd81c241b00ddcf67ee96904c58ea"
   dependencies:
     "@types/libsodium-wrappers-sumo" "^0.7.5"
     blake3 "^2.1.7"

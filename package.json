@@ -19,7 +19,7 @@
     "react-dom": "^18.2.0",
     "react-pdf": "^7.0.3",
     "react-router-dom": "^6.11.2",
-    "signify-ts": "https://github.com/provenant-dev/signify-ts",
+    "signify-ts": "https://github.com/WebOfTrust/signify-ts",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
