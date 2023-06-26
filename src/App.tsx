@@ -39,7 +39,8 @@ import {
   Divider,
   // ListItemButton,
   ListItemIcon,
-  Fab
+  Fab,
+  listItemTextClasses
 } from '@mui/material';
 import {
   Circle, FileUpload, Menu,
@@ -57,6 +58,7 @@ import {
 import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
+const statusPath = '/status';
 const baseUrl = 'http://127.0.0.1:8000';
 
 const MainComponent = () => {
@@ -802,7 +804,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
 };
 
 const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Array<any>>();
   const [selectedReport, setSelectedReport] = useState(null);
   const [openModalTable, setOpenModalTable] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -844,10 +846,17 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
         // const response = await fetch('https://api.example.com/data');
         // const jsonData = await response.json();
         // await new Promise(r => setTimeout(r, 1200));
-        let d = await checkUpload(selectedAid, selectedAcdc)
-        //TODO: hack to make it a list
-        d = [d]
-        setData(d);
+        let d = await checkUpload(selectedAid)
+        console.log("Response data is type and data",typeof(d),d)
+        let newData = Array<any>()
+        let statuses = Object.keys(d).map((item: any) => {
+          return d[item].map((status: any) => {
+            newData.push(JSON.parse(status))
+          })
+        });
+        console.log("Status data converted type and data",typeof(statuses),statuses)
+        console.log("New data converted type and data",typeof(newData),newData)
+        setData(newData)
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -867,8 +876,8 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
   };
 
   // Function to perform the upload request
-  async function checkUpload(aid: string, said: string): Promise<any> {
-    const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
+  async function checkUpload(aid: string): Promise<any> {
+    const url = `${baseUrl}${statusPath}/${aid}`;
 
     // Make the API request using the fetch function
     const response = await fetch(url, {
@@ -901,7 +910,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
           }}
         />}
 
-      {data.length === 0 && !loading && <Alert severity="info" action={
+      {data && !loading && <Alert severity="info" action={
         <Button color="inherit" size="small" onClick={() => {
           //TODO: remove this
           // setData(_fakedata);
@@ -910,7 +919,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
           Upload Report
         </Button>
       }>You don't have any reports yet.</Alert>}
-      {!loading && <TableContainer component={Paper}>
+      {data && !loading && <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
@@ -923,10 +932,10 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
           <TableBody>
             {data.map((item: any) => (
               <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
-                <TableCell>{item.filename}</TableCell>
+                <TableCell>{item.filename.substring(0,75)}</TableCell>
                 <TableCell>{item.size}</TableCell>
                 <TableCell>{item.status}</TableCell>
-                <TableCell>{item.message}</TableCell>
+                <TableCell>{item.message.substring(0,75)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -940,7 +949,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            bgcolor: 'background.paper',
+            bgcolor: '#348ceb',
             boxShadow: 24,
             p: 4,
             minWidth: 275,
@@ -955,16 +964,16 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
                 Report Details
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Name: {selectedReport.name}
+                Filename: {selectedReport.filename}
               </Typography>
               <Typography variant="body1" gutterBottom>
                 Size: {selectedReport.size}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Date Uploaded: {selectedReport.dateUploaded}
+                Status: {selectedReport.status}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Status: {selectedReport.status}
+                Message: {selectedReport.message}
               </Typography>
             </>
           )}
