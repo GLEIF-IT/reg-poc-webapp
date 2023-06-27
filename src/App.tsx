@@ -58,6 +58,7 @@ import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
+const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
@@ -407,7 +408,7 @@ const MainComponent = () => {
                           async () => {
                             setModalError('')
                             setStatus('Connecting')
-                            const client = new SignifyClient(url, passcode);
+                            const client = new SignifyClient(signifyUrl, passcode);
                             setClient(client)
                             await connectToAgent(client)
                             // setAids(['EJEWp997uRp0HFSgnp1Hb26kC33v6t3iMhaj283isU5J', 'EHCQxd86mjMk_sMhB7XH5PJrObCmYBiv8wZ7zIZr0kLC', 'EA7mBw8OLM597_yRCr6OaYXUCyTXHgk1Hy214jB6yMmd'])
