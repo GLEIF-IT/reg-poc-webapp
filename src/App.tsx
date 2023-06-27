@@ -58,8 +58,7 @@ import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
-const url = import.meta.env.VITE_KERI_URL;
-const baseUrl = import.meta.env.VITE_SERVER_URL;
+const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
@@ -83,7 +82,7 @@ const MainComponent = () => {
 
   useEffect(() => {
     ready().then(() => {
-      console.log("signify client is ready", url, baseUrl);
+      console.log("signify client is ready", serverUrl);
     })
   }, [])
 
@@ -95,7 +94,7 @@ const MainComponent = () => {
 
   // Function to perform the ping request
   async function ping(): Promise<string> {
-    const url = `${baseUrl}${pingPath}`;
+    const url = `${serverUrl}${pingPath}`;
 
     // Make the API request using the fetch function
     const response = await fetch(url);
@@ -107,7 +106,7 @@ const MainComponent = () => {
 
   // Function to perform the login request
   async function login(aid: string, said: string, vlei: string): Promise<any> {
-    const url = `${baseUrl}${loginPath}`;
+    const url = `${serverUrl}${loginPath}`;
 
     // Create the request body object
     const requestBody = {
@@ -648,7 +647,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
 
   // Function to perform the upload request
   async function upload(aid: string, said: string, report: string): Promise<any> {
-    const url = `${baseUrl}${uploadPath}/${aid}/${said}`;
+    const url = `${serverUrl}${uploadPath}/${aid}/${said}`;
 
     const formData = new FormData();
     formData.append('upload', report);
@@ -870,7 +869,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
 
   // Function to perform the upload request
   async function checkUpload(aid: string): Promise<any> {
-    const url = `${baseUrl}${statusPath}/${aid}`;
+    const url = `${serverUrl}${statusPath}/${aid}`;
 
     // Make the API request using the fetch function
     const response = await fetch(url, {
