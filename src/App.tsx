@@ -159,9 +159,9 @@ const MainComponent = () => {
     let vlei_cesr = await creds.export(selectedOption1, selectedOption2)
     console.log(vlei_cesr)
 
-    let logged_in = await login(selectedOption1, selectedOption2, vlei_cesr)
+    let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
     console.log(logged_in)
-    if (logged_in.aid === selectedOption1) {
+    if (logged_in.aid === getSelectedAid().prefix) {
       setStatus('Connected')
       setModalError('')
     }
@@ -175,21 +175,21 @@ const MainComponent = () => {
 
   }
   //create async function that wait for 2 seconds and either return 'in progress' or 'almost done' with a 40% chance
-  const checkStatus = async () => {
-    //wait for 2 seconds
-    await new Promise(r => setTimeout(r, 2000));
+  // const checkStatus = async () => {
+  //   //wait for 2 seconds
+  //   await new Promise(r => setTimeout(r, 2000));
 
-    let _aids = ['EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk']
-    let _acdcs = ['EJYGavdmOrtMh022whOAiqd59ZA5ikHuBTSjlACJ880K']
-    //
-    if (selectedOption1 === _aids[0] && selectedOption2 === _acdcs[0]) {
-      setStatus('Connected')
-      return
-    }
-    setModalError('Pick a different credential/identifier pair')
-    setStatus('Failed')
+  //   let _aids = ['EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk']
+  //   let _acdcs = ['EJYGavdmOrtMh022whOAiqd59ZA5ikHuBTSjlACJ880K']
+  //   //
+  //   if (selectedOption1 === _aids[0] && selectedOption2 === _acdcs[0]) {
+  //     setStatus('Connected')
+  //     return
+  //   }
+  //   setModalError('Pick a different credential/identifier pair')
+  //   setStatus('Failed')
 
-  }
+  // }
 
 
 
@@ -205,7 +205,7 @@ const MainComponent = () => {
   };
 
   const getSelectedAid = () => {
-    const aid_found = aids.find(aid => aid.prefix === selectedOption1)
+    const aid_found = aids.find(aid => aid.name === selectedOption1)
     if (aid_found !== undefined) {
       return aid_found
     }
@@ -316,7 +316,7 @@ const MainComponent = () => {
           <div style={{ marginTop: 'auto', textAlign: 'center' }}>
             <Divider />
             <List>
-              {[getSelectedAid(selectedOption1), getSelectedAcdc(selectedOption2)].map((text, index) => (
+              {[getSelectedAid(), getSelectedAcdc(selectedOption2)].map((text, index) => (
                 <Tooltip
                   title={index == 0 ? text?.prefix : text?.sad.d}
                   placement="right"
@@ -414,6 +414,7 @@ const MainComponent = () => {
                             // setAids(['EJEWp997uRp0HFSgnp1Hb26kC33v6t3iMhaj283isU5J', 'EHCQxd86mjMk_sMhB7XH5PJrObCmYBiv8wZ7zIZr0kLC', 'EA7mBw8OLM597_yRCr6OaYXUCyTXHgk1Hy214jB6yMmd'])
                             const identifiers = client.identifiers()
                             const _ids = await identifiers.list_identifiers()
+                            console.log("Identifiers list",_ids)
                             if (_ids.length === 0) {
                               setModalError('No identifiers found. Please add one from the agent')
                               setStatus('Connecting')
@@ -441,7 +442,7 @@ const MainComponent = () => {
                         onChange={e => setSelectedOption1(e.target.value)}
                       >
                         {aids.map((aid, index) => (
-                          <Tooltip title={aid.prefix} placement="right" key={aid.prefix}>
+                          <Tooltip title={aid.name} placement="right" key={aid.prefix}>
                             <FormControlLabel key={index} value={aid.name} control={<Radio />} label={aid.name} />
                           </Tooltip>
                         ))}
@@ -559,7 +560,7 @@ const MainComponent = () => {
       {selectedComponent === 'Check Status' && client !== null && <MyTable
         setSelectedComponent={setSelectedComponent}
         selectedAcdc={selectedOption2}
-        selectedAid={selectedOption1}
+        selectedAid={getSelectedAid().prefix}
       />}
       {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
         errorUpload={errorUpload}
@@ -571,7 +572,7 @@ const MainComponent = () => {
         setSelectedComponent={setSelectedComponent}
         resetAidSelected={resetAidSelected}
         selectedAcdc={selectedOption2}
-        selectedAid={selectedOption1}
+        selectedAid={getSelectedAid().prefix}
       />}
 
     </Box>
