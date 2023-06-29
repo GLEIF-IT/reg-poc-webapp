@@ -904,7 +904,7 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
           }}
         />}
 
-      {data && !loading && <Alert severity="info" action={
+      {(!data || data.length == 0) && !loading && <Alert severity="info" action={
         <Button color="inherit" size="small" onClick={() => {
           //TODO: remove this
           // setData(_fakedata);
