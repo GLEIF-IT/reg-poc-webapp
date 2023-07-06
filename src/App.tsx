@@ -558,11 +558,13 @@ const MainComponent = () => {
       {/* {selectedComponent === 'Check Status' && client !== null && <TextComponent text='Check Status' />} */}
       {/* {selectedComponent === 'Upload Report' && client !== null && <TextComponent text='Upload Report' />} */}
       {selectedComponent === 'Check Status' && client !== null && <MyTable
+        client={client}
         setSelectedComponent={setSelectedComponent}
         selectedAcdc={selectedOption2}
         selectedAid={getSelectedAid().prefix}
       />}
       {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
+        client={client}
         errorUpload={errorUpload}
         setErrorUpload={setErrorUpload}
         submitResult={submitResult}
@@ -609,8 +611,7 @@ const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
 )
 
 
-const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
-
+const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
 
   useEffect(() => {
     setErrorUpload('')
@@ -664,6 +665,11 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     });
 
     const responseData = await response.json();
+    // // Send signed request
+    // const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid}/${said}`, 'POST',formData,aid)
+    // const response_signed_data = await response_signed.json();
+    // console.log(response_signed_data)
+
 
     // Return the response data
     return responseData;
@@ -797,7 +803,7 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
   );
 };
 
-const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
+const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) => {
   const [data, setData] = useState<Array<any>>();
   const [selectedReport, setSelectedReport] = useState(null);
   const [openModalTable, setOpenModalTable] = useState(false);
@@ -881,6 +887,10 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
       },
     });
 
+     // // Send signed request
+    // const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid}`, 'GET',null,aid)
+    // const response_signed_data = await response_signed.json();
+    // console.log(response_signed_data)
     const responseData = await response.json();
 
     // Return the response data
