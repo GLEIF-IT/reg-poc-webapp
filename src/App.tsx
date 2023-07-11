@@ -650,29 +650,29 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
 
   // Function to perform the upload request
   async function upload(aid: string, said: string, report: string): Promise<any> {
-    const url = `${serverUrl}${uploadPath}/${aid}/${said}`;
+    // const url = `${serverUrl}${uploadPath}/${aid}/${said}`;
 
     const formData = new FormData();
     formData.append('upload', report);
 
     // Make the API request using the fetch function
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json'
-      },
-      body: formData
-    });
-
-    const responseData = await response.json();
+    // const response = await fetch(url, {
+    //   method: 'POST',
+    //   headers: {
+    //     'accept': 'application/json'
+    //   },
+    //   body: formData
+    // });
+    // const responseData = await response.json();
+    
     // // Send signed request
-    // const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid}/${said}`, 'POST',formData,aid)
-    // const response_signed_data = await response_signed.json();
-    // console.log(response_signed_data)
+    const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid}/${said}`, 'POST',formData,aid)
+    const response_signed_data = await response_signed.json();
+    console.log(response_signed_data)
 
 
     // Return the response data
-    return responseData;
+    return response_signed_data;
   }
 
   const handleSubmit = async () => {
@@ -877,24 +877,23 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
 
   // Function to perform the upload request
   async function checkUpload(aid: string): Promise<any> {
-    const url = `${serverUrl}${statusPath}/${aid}`;
+    // const url = `${serverUrl}${statusPath}/${aid}`;
 
-    // Make the API request using the fetch function
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json'
-      },
-    });
+    // // Make the API request using the fetch function
+    // const response = await fetch(url, {
+    //   method: 'GET',
+    //   headers: {
+    //     'accept': 'application/json'
+    //   },
+    // });
+    // // Return the response data
+    // return response.json();
 
      // // Send signed request
-    // const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid}`, 'GET',null,aid)
-    // const response_signed_data = await response_signed.json();
-    // console.log(response_signed_data)
-    const responseData = await response.json();
-
-    // Return the response data
-    return responseData;
+    const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid}`, 'GET',null,aid)
+    const response_signed_data = await response_signed.json();
+    console.log(response_signed_data)
+    return response_signed_data;
   }
 
   return (
