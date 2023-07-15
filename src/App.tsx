@@ -620,7 +620,9 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
     , [])
 
   const setFile = (file: any) => {
-    if (file.type !== 'application/zip') {
+    const acceptedTypes = ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', 'application/zip-compressed', 'application/octet-stream'];
+
+    if (!acceptedTypes.includes(file.type)) {
       setSelectedFile(null);
       setErrorUpload(`${file.name} is not a zip file. \n Please select a zip file.`)
       setSubmitResult('')
