@@ -51,8 +51,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import BadgeIcon from '@mui/icons-material/Badge';
 import {
-  SignifyClient, ready,
-  CredentialTypes
+  SignifyClient, ready, CredentialTypes
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
 
@@ -156,7 +155,7 @@ const MainComponent = () => {
     //generate a random number between 0 and 1
 
     const creds = client.credentials()
-    let vlei_cesr = await creds.export(selectedOption1, selectedOption2)
+    let vlei_cesr = await creds.get_credential(selectedOption1, selectedOption2, true)
     console.log(vlei_cesr)
 
     let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
@@ -452,12 +451,12 @@ const MainComponent = () => {
                         color="primary"
                         disabled={selectedOption1 === ''}
                         onClick={async () => {
-                          setModalError('')
-                          const credentials = client.credentials()
-                          const _creds = await credentials.list(selectedOption1, CredentialTypes.received, '')
+                          setModalError('');
+                          const credentials = client.credentials();
+                          const _creds = await credentials.list(selectedOption1, {filter: { "-s": {"$eq": "EEy9PkikFcANV1l7EHukCeXqrzT1hNZjGlUk7wuMO5jw"}}});
                           let saids: string[] = [];
                           _creds.forEach(cred => {
-                            saids.push(cred)
+                              saids.push(cred);
                           })
 
                           setActiveStep(prevStep => prevStep + 1)
