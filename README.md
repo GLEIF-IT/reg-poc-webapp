@@ -1,16 +1,35 @@
 # reg-poc-webapp
-to run the app use
-```yarn install
-yarn run dev
+
+UI for credential selection, login and upload.
+
+## Architecture
+
+### Webapp (this service)
+The web app (UI front-end) uses Signify/KERIA for selecting identifiers and credentials:
+
 ```
-plase follow the https://github.com/WebOfTrust/signifypy/tree/main/scripts before spinning this up
+yarn install; yarn dev run
+```
 
-It currently only retrieves the identifiers from a localhost keria (line 64 in App.tsx). 
+Open http://localhost:5173/ in your browser.
 
-To succesfully log in pick the first 'credential' as well. 
+### Verifier
+The verifier uses [keripy](https://github.com/WebOfTRust/keripy) for verifying the requests.
 
-TODO: 
+See: [reg-poc-verifier](https://github.com/GLEIF-IT/reg-poc-verifier)
 
-merge https://github.com/WebOfTrust/signify-ts/pull/49/files and get credentials 
+### Server
+Provides the ability to:
+* Log in using a vLEI ECR
+* Upload signed files
+* Check the status of an upload
 
-call login() function and pass error message (url in line 66 in App.tsx)
+See: [reg-poc-server](https://github.com/GLEIF-IT/reg-poc-server)
+
+### Additional service
+* KERI Witness Network
+* vLEI server
+* KERI Agent
+
+The deployment architecture is demonstrated in [reg-poc](https://github.com/GLEIF-IT/reg-poc)
+
