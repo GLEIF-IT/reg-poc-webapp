@@ -155,7 +155,7 @@ const MainComponent = () => {
     //generate a random number between 0 and 1
 
     const creds = client.credentials()
-    let vlei_cesr = await creds.get_credential(selectedOption1, selectedOption2, true)
+    let vlei_cesr = await creds.get(selectedOption1, selectedOption2,true)
     console.log(vlei_cesr)
 
     let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
@@ -412,7 +412,7 @@ const MainComponent = () => {
                             await connectToAgent(client)
                             // setAids(['EJEWp997uRp0HFSgnp1Hb26kC33v6t3iMhaj283isU5J', 'EHCQxd86mjMk_sMhB7XH5PJrObCmYBiv8wZ7zIZr0kLC', 'EA7mBw8OLM597_yRCr6OaYXUCyTXHgk1Hy214jB6yMmd'])
                             const identifiers = client.identifiers()
-                            const _ids = await identifiers.list_identifiers()
+                            const _ids = await identifiers.list()
                             console.log("Identifiers list",_ids)
                             if (_ids.length === 0) {
                               setModalError('No identifiers found. Please add one from the agent')
@@ -560,7 +560,7 @@ const MainComponent = () => {
         client={client}
         setSelectedComponent={setSelectedComponent}
         selectedAcdc={selectedOption2}
-        selectedAid={getSelectedAid().prefix}
+        selectedAid={getSelectedAid()}
       />}
       {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
         client={client}
@@ -573,7 +573,7 @@ const MainComponent = () => {
         setSelectedComponent={setSelectedComponent}
         resetAidSelected={resetAidSelected}
         selectedAcdc={selectedOption2}
-        selectedAid={getSelectedAid().prefix}
+        selectedAid={getSelectedAid()}
       />}
 
     </Box>
@@ -667,9 +667,10 @@ const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult
     // const responseData = await response.json();
     
     // // Send signed request
-    const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid}/${said}`, 'POST',formData,aid)
+    console.log("Form data is",formData.get('upload'))
+    const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid.prefix}/${said}`, 'POST',formData,aid.name)
     const response_signed_data = await response_signed.json();
-    console.log(response_signed_data)
+    console.log("upload response",response_signed_data)
 
 
     // Return the response data
@@ -877,7 +878,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
   };
 
   // Function to perform the upload request
-  async function checkUpload(aid: string): Promise<any> {
+  async function checkUpload(aid): Promise<any> {
     // const url = `${serverUrl}${statusPath}/${aid}`;
 
     // // Make the API request using the fetch function
@@ -891,7 +892,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
     // return response.json();
 
      // // Send signed request
-    const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid}`, 'GET',null,aid)
+    const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid.prefix}`, 'GET',null,aid.name)
     const response_signed_data = await response_signed.json();
     console.log(response_signed_data)
     return response_signed_data;
@@ -936,10 +937,10 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
           <TableBody>
             {data.map((item: any) => (
               <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
-                <TableCell>{item.filename.substring(0,75)}</TableCell>
-                <TableCell>{item.size}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell>{item.message.substring(0,75)}</TableCell>
+                <TableCell>{item.filename == undefined ? "unknown" : item.filename.substring(0,75)}</TableCell>
+                <TableCell>{item.size == undefined ? "unknown" : item.size}</TableCell>
+                <TableCell>{item.status == undefined ? JSON.stringify(item) : item.status}</TableCell>
+                <TableCell>{item.message == undefined ? "unknown" : item.message.substring(0,75)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
