@@ -1,7 +1,7 @@
 FROM node:18.16.0-alpine
 
-WORKDIR /app
-COPY . /app/
+RUN apk update
+RUN apk add git
 
 # Upgrade yarn to a newer version to support rebuild
 RUN yarn set version berry
