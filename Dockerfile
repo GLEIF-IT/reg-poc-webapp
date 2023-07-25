@@ -1,5 +1,8 @@
 FROM node:18.16.0-alpine
 
+WORKDIR /app
+COPY . /app/
+
 # Upgrade yarn to a newer version to support rebuild
 RUN yarn set version berry \
 # Install dependencies without building by source code
