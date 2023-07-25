@@ -4,12 +4,12 @@ WORKDIR /app
 COPY . /app/
 
 # Upgrade yarn to a newer version to support rebuild
-RUN yarn set version berry \
+RUN yarn set version berry
 # Install dependencies without building by source code
-    && yarn install --mode=skip-build \
+RUN yarn install --mode=skip-build
 # Rebuild binaries (to avoid the weird issues on windows)
 # This should be ok for the POC.
-    && yarn rebuild
+RUN yarn rebuild
 
 EXPOSE 5173
 
