@@ -1,15 +1,17 @@
 FROM node:18.16.0-alpine
 
-RUN apk update
-RUN apk add git
-
 WORKDIR /app
-COPY . /app/
+COPY ./package.json ./yarn.lock ./
 
 # Upgrade yarn to a newer version to support rebuild
-RUN yarn set version berry
 # Install dependencies without building by source code
-RUN yarn install --mode=skip-build
+RUN apk update \
+    && apk add git \
+    && yarn set version berry \
+    && yarn install --mode=skip-build
+
+COPY . ./
+
 # Rebuild binaries (to avoid the weird issues on windows)
 # This should be ok for the POC.
 RUN yarn rebuild
