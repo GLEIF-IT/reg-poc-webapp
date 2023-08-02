@@ -5,9 +5,7 @@ import {
   Paper,
   Toolbar,
   DialogTitle,
-  // DialogContentText,
   DialogContent,
-  // DialogActions,
   IconButton,
   Typography,
   Button,
@@ -20,24 +18,17 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  // FormControl,
   Stepper,
   Step,
   StepLabel,
   StepContent,
-  // Divider, 
   Grid,
-  // Stack, 
   Box,
   CircularProgress,
   Modal,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  // Card, 
-  // CardContent, 
   Tooltip,
-  // Accordion, AccordionSummary, AccordionDetails,
   Divider,
-  // ListItemButton,
   ListItemIcon,
   Fab
 } from '@mui/material';
@@ -47,16 +38,16 @@ import {
 } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import BadgeIcon from '@mui/icons-material/Badge';
 import {
-  SignifyClient, ready, CredentialTypes
+  SignifyClient, ready
 } from 'signify-ts';
 import GridViewIcon from '@mui/icons-material/GridView';
 
 const uploadPath = '/upload';
 const statusPath = '/status';
+const verSigPath = '/verify/header';
 const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -149,20 +140,24 @@ const MainComponent = () => {
 
   };
 
-  const loginReal = async () => {
-    //wait for 2 seconds
-    // await new Promise(r => setTimeout(r, 2000));
-    //generate a random number between 0 and 1
+  const checkHeaderSignatures = async (aid: any, name: any) => {
+    console.log("Checking header signatures")
+    const response_signed = await client.signedFetch(serverUrl,`${verSigPath}`, 'GET',null,name)
+    const response_signed_data = await response_signed.json();
+    console.log("header signature verification response",response_signed_data)
+  }
 
+  const loginReal = async () => {
     const creds = client.credentials()
-    let vlei_cesr = await creds.get_credential(selectedOption1, selectedOption2, true)
-    console.log(vlei_cesr)
+    let vlei_cesr = await creds.get(selectedOption1, selectedOption2,true)
+    console.log("vlei cesr",vlei_cesr)
 
     let logged_in = await login(getSelectedAid().prefix, selectedOption2, vlei_cesr)
-    console.log(logged_in)
+    console.log("logged in result",logged_in)
     if (logged_in.aid === getSelectedAid().prefix) {
       setStatus('Connected')
       setModalError('')
+      // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
     }
     else if (JSON.stringify(logged_in).includes('Exception')) {
       setStatus('Failed')
@@ -173,24 +168,6 @@ const MainComponent = () => {
     }
 
   }
-  //create async function that wait for 2 seconds and either return 'in progress' or 'almost done' with a 40% chance
-  // const checkStatus = async () => {
-  //   //wait for 2 seconds
-  //   await new Promise(r => setTimeout(r, 2000));
-
-  //   let _aids = ['EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk']
-  //   let _acdcs = ['EJYGavdmOrtMh022whOAiqd59ZA5ikHuBTSjlACJ880K']
-  //   //
-  //   if (selectedOption1 === _aids[0] && selectedOption2 === _acdcs[0]) {
-  //     setStatus('Connected')
-  //     return
-  //   }
-  //   setModalError('Pick a different credential/identifier pair')
-  //   setStatus('Failed')
-
-  // }
-
-
 
   const renderComponent = (componentName: any) => {
     //check if the client is not null then render the component otherwise set the drwar to true
@@ -410,9 +387,8 @@ const MainComponent = () => {
                             const client = new SignifyClient(signifyUrl, passcode);
                             setClient(client)
                             await connectToAgent(client)
-                            // setAids(['EJEWp997uRp0HFSgnp1Hb26kC33v6t3iMhaj283isU5J', 'EHCQxd86mjMk_sMhB7XH5PJrObCmYBiv8wZ7zIZr0kLC', 'EA7mBw8OLM597_yRCr6OaYXUCyTXHgk1Hy214jB6yMmd'])
                             const identifiers = client.identifiers()
-                            const _ids = await identifiers.list_identifiers()
+                            const _ids = await identifiers.list()
                             console.log("Identifiers list",_ids)
                             if (_ids.length === 0) {
                               setModalError('No identifiers found. Please add one from the agent')
@@ -422,8 +398,6 @@ const MainComponent = () => {
                               setAids(_ids)
                               setActiveStep(prevStep => prevStep + 1)
                             }
-
-
                           }
                         }
                       >
@@ -461,7 +435,6 @@ const MainComponent = () => {
 
                           setActiveStep(prevStep => prevStep + 1)
                           setAcdcs(saids)
-                          // setAcdcs(['EAIcKG4UERhMZpX0M43sFr3qUDJDtRMZpX0MdpZ9z1', 'EBIcAFV1EqUDJDtRbgSMs44aBIcKAtRbQzHEdmpZ9z2', 'ECIcKAVUERhMZpX0MCgSMs7a65RrJDtRbQzHd66mpZ9z3']) 
                         }
 
                         }
@@ -493,9 +466,6 @@ const MainComponent = () => {
                         onClick={
                           async () => {
                             setActiveStep(prevStep => prevStep + 1)
-                            //call api function from lance and handle it here
-                            // await checkStatus()
-                            //login real
                             await loginReal()
                           }
                         }
@@ -537,7 +507,7 @@ const MainComponent = () => {
                             setSelectedOption2('');
                             setStatus('Connect');
                             setPasscode('');
-                            handleClose()
+                            handleClose();
                           }}
                         >
                           disconnect
@@ -553,15 +523,14 @@ const MainComponent = () => {
         </DialogContent>
       </Dialog>
       {client === null && <LandingComponent text='Welcome to EBA portal' />}
-      {/* {selectedOption2 !== '' && !open && Info(selectedOption1, selectedOption2, resetAidSelected)} */}
-      {/* {selectedComponent === 'Check Status' && client !== null && <TextComponent text='Check Status' />} */}
-      {/* {selectedComponent === 'Upload Report' && client !== null && <TextComponent text='Upload Report' />} */}
       {selectedComponent === 'Check Status' && client !== null && <MyTable
+        client={client}
         setSelectedComponent={setSelectedComponent}
         selectedAcdc={selectedOption2}
-        selectedAid={getSelectedAid().prefix}
+        selectedAid={getSelectedAid()}
       />}
       {selectedComponent === 'Upload Report' && client !== null && <DragAndDropUploader
+        client={client}
         errorUpload={errorUpload}
         setErrorUpload={setErrorUpload}
         submitResult={submitResult}
@@ -571,7 +540,7 @@ const MainComponent = () => {
         setSelectedComponent={setSelectedComponent}
         resetAidSelected={resetAidSelected}
         selectedAcdc={selectedOption2}
-        selectedAid={getSelectedAid().prefix}
+        selectedAid={getSelectedAid()}
       />}
 
     </Box>
@@ -608,8 +577,7 @@ const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
 )
 
 
-const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
-
+const DragAndDropUploader = ({ client, errorUpload, setErrorUpload, submitResult, setSubmitResult, selectedFile, setSelectedFile, setSelectedComponent, resetAidSelected, selectedAid, selectedAcdc }) => {
 
   useEffect(() => {
     setErrorUpload('')
@@ -650,24 +618,18 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
 
   // Function to perform the upload request
   async function upload(aid: string, said: string, report: string): Promise<any> {
-    const url = `${serverUrl}${uploadPath}/${aid}/${said}`;
-
     const formData = new FormData();
     formData.append('upload', report);
+    
+    // // Send signed request
+    console.log("Form data is",formData.get('upload'))
+    const response_signed = await client.signedFetch(serverUrl,`${uploadPath}/${aid.prefix}/${said}`, 'POST',formData,aid.name)
+    const response_signed_data = await response_signed.json();
+    console.log("upload response",response_signed_data)
 
-    // Make the API request using the fetch function
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json'
-      },
-      body: formData
-    });
-
-    const responseData = await response.json();
 
     // Return the response data
-    return responseData;
+    return response_signed_data;
   }
 
   const handleSubmit = async () => {
@@ -798,34 +760,12 @@ const DragAndDropUploader = ({ errorUpload, setErrorUpload, submitResult, setSub
   );
 };
 
-const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
+const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) => {
   const [data, setData] = useState<Array<any>>();
   const [selectedReport, setSelectedReport] = useState(null);
   const [openModalTable, setOpenModalTable] = useState(false);
   const [loading, setLoading] = useState(false);
-  const demoData = [
-    // { id: 1, name: 'File 1', size: '10 MB', dateUploaded: '2023-06-01', status: 'Uploaded' },
-    // { id: 2, name: 'File 2', size: '5 MB', dateUploaded: '2023-06-02', status: 'Failed' },
-    // { id: 3, name: 'File 3', size: '2 MB', dateUploaded: '2023-06-03', status: 'Uploaded' },
-    // { id: 4, name: 'File 4', size: '1 MB', dateUploaded: '2023-06-04', status: 'Processing' },
-    // { id: 5, name: 'File 5', size: '3 MB', dateUploaded: '2023-06-05', status: 'Uploaded' },
-    // { id: 6, name: 'File 6', size: '4 MB', dateUploaded: '2023-06-06', status: 'Uploaded' },
-    // { id: 7, name: 'File 7', size: '6 MB', dateUploaded: '2023-06-07', status: 'Uploaded' },
-    // { id: 8, name: 'File 8', size: '7 MB', dateUploaded: '2023-06-08', status: 'Uploaded' },
-    // { id: 9, name: 'File 9', size: '8 MB', dateUploaded: '2023-06-09', status: 'Uploaded' },
-    // { id: 10, name: 'File 10', size: '9 MB', dateUploaded: '2023-06-10', status: 'Uploaded' },
-    // { id: 11, name: 'File 11', size: '10 MB', dateUploaded: '2023-06-01', status: 'Uploaded' },
-    // { id: 12, name: 'File 12', size: '5 MB', dateUploaded: '2023-06-02', status: 'Uploaded' },
-    // { id: 13, name: 'File 13', size: '2 MB', dateUploaded: '2023-06-03', status: 'Processing' },
-    // { id: 14, name: 'File 14', size: '1 MB', dateUploaded: '2023-06-04', status: 'Uploaded' },
-    // { id: 15, name: 'File 15', size: '3 MB', dateUploaded: '2023-06-05', status: 'Uploaded' },
-    // { id: 16, name: 'File 16', size: '4 MB', dateUploaded: '2023-06-06', status: 'Uploaded' },
-    // { id: 17, name: 'File 17', size: '6 MB', dateUploaded: '2023-06-07', status: 'Uploaded' },
-    // { id: 18, name: 'File 18', size: '7 MB', dateUploaded: '2023-06-08', status: 'Uploaded' },
-    // { id: 19, name: 'File 19', size: '8 MB', dateUploaded: '2023-06-09', status: 'Uploaded' },
-    // { id: 20, name: 'File 20', size: '9 MB', dateUploaded: '2023-06-10', status: 'Uploaded' },
 
-  ];
   const _fakedata = [
     { filename: 'File 1', size: '10 MB', message: 'last update 2023-06-01', status: 'Uploaded' },
     { filename: 'File 2', size: '5 MB', message: 'last update 2023-06-02', status: 'Failed' },
@@ -838,9 +778,6 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
       try {
         // Replace this with your actual fetch URL
         setLoading(true);
-        // const response = await fetch('https://api.example.com/data');
-        // const jsonData = await response.json();
-        // await new Promise(r => setTimeout(r, 1200));
         let d = await checkUpload(selectedAid)
         console.log("Response data is type and data",typeof(d),d)
         let newData = new Set<any>()
@@ -871,21 +808,12 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
   };
 
   // Function to perform the upload request
-  async function checkUpload(aid: string): Promise<any> {
-    const url = `${serverUrl}${statusPath}/${aid}`;
-
-    // Make the API request using the fetch function
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json'
-      },
-    });
-
-    const responseData = await response.json();
-
-    // Return the response data
-    return responseData;
+  async function checkUpload(aid): Promise<any> {
+     // // Send signed request
+    const response_signed = await client.signedFetch(serverUrl,`${statusPath}/${aid.prefix}`, 'GET',null,aid.name)
+    const response_signed_data = await response_signed.json();
+    console.log(response_signed_data)
+    return response_signed_data;
   }
 
   return (
@@ -907,8 +835,6 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
 
       {(!data || data.length == 0) && !loading && <Alert severity="info" action={
         <Button color="inherit" size="small" onClick={() => {
-          //TODO: remove this
-          // setData(_fakedata);
           setSelectedComponent('Upload Report')
         }}>
           Upload Report
@@ -927,10 +853,10 @@ const MyTable = ({ setSelectedComponent, selectedAid, selectedAcdc }) => {
           <TableBody>
             {data.map((item: any) => (
               <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
-                <TableCell>{item.filename.substring(0,75)}</TableCell>
-                <TableCell>{item.size}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell>{item.message.substring(0,75)}</TableCell>
+                <TableCell>{item.filename == undefined ? "unknown" : item.filename.substring(0,75)}</TableCell>
+                <TableCell>{item.size == undefined ? "unknown" : item.size}</TableCell>
+                <TableCell>{item.status == undefined ? JSON.stringify(item) : item.status}</TableCell>
+                <TableCell>{item.message == undefined ? "unknown" : item.message.substring(0,75)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
