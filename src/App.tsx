@@ -855,7 +855,9 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
               <TableRow key={item.filename} onClick={() => handleRowClick(item)}>
                 <TableCell>{item.filename == undefined ? "unknown" : item.filename.substring(0,75)}</TableCell>
                 <TableCell>{item.size == undefined ? "unknown" : item.size}</TableCell>
-                <TableCell>{item.status == undefined ? JSON.stringify(item) : item.status}</TableCell>
+                <TableCell style={
+                  item.status === 'verified' ? {'color': 'green'} : item.status === 'failed' ? {'color': 'red'} : {'color': 'yellow'}}>
+                  {item.status.charAt(0).toUpperCase() + item.status.slice(1)}</TableCell>
                 <TableCell>{item.message == undefined ? "unknown" : item.message.substring(0,75)}</TableCell>
               </TableRow>
             ))}
