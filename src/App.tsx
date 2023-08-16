@@ -783,7 +783,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
         let newData = new Set<any>()
         let statuses = Object.keys(d).map((item: any) => {
           return d[item].map((status: any) => {
-            newData.add(JSON.parse(status))
+            newData.add(status)
           })
         });
         console.log("Status data converted type and data",typeof(statuses),statuses)
@@ -791,7 +791,7 @@ const MyTable = ({ client, setSelectedComponent, selectedAid, selectedAcdc }) =>
         setData(Array.from(newData))
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching data: ', error);
       }
     };
 
