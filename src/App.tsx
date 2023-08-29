@@ -56,6 +56,7 @@ import {
   setStatus,
   setStep,
 } from "./features/shared/shared-slice";
+import { useAuthenticChainedDataContainerContext } from "./contexts/AuthenticChainedDataContainer";
 
 const uploadPath = "/upload";
 const statusPath = "/status";
@@ -79,10 +80,11 @@ const MainComponent = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [errorUpload, setErrorUpload] = useState("");
   const [submitResult, setSubmitResult] = useState("");
-  const [acdcs, setAcdcs] = useState([]);
 
   const { aids, client, setClient, handleCreateAgent, getSelectedAid } =
     useAutonomicIDContext();
+  const { acdcs, handleSelectACDC, getSelectedAcdc } =
+    useAuthenticChainedDataContainerContext();
 
   const dispatch = useAppDispatch();
 
@@ -202,14 +204,6 @@ const MainComponent = () => {
       return;
     }
     setSelectedComponent(componentName);
-  };
-
-  const getSelectedAcdc = () => {
-    const acdc_found = acdcs.find((acdc) => acdc.sad.d === acdcOption);
-    if (acdc_found !== undefined) {
-      return acdc_found;
-    }
-    return undefined;
   };
 
   const resetAidSelected = () => {
@@ -477,22 +471,7 @@ const MainComponent = () => {
                         color="primary"
                         disabled={aidOption === ""}
                         onClick={async () => {
-                          setModalError("");
-                          const credentials = client!.credentials();
-                          const _creds = await credentials.list(aidOption, {
-                            filter: {
-                              "-s": {
-                                $eq: "EEy9PkikFcANV1l7EHukCeXqrzT1hNZjGlUk7wuMO5jw",
-                              },
-                            },
-                          });
-                          let saids: string[] = [];
-                          _creds.forEach((cred) => {
-                            saids.push(cred);
-                          });
-
-                          dispatch(incrementStep());
-                          setAcdcs(saids);
+                          handleSelectACDC();
                         }}
                       >
                         Next
@@ -568,7 +547,8 @@ const MainComponent = () => {
                           color="error"
                           sx={{ m: 1 }}
                           disabled={
-                            connectionStatus === "Connecting" || connectionStatus === "Failed"
+                            connectionStatus === "Connecting" ||
+                            connectionStatus === "Failed"
                           }
                           onClick={() => {
                             dispatch(setStep(0));
