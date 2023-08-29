@@ -44,6 +44,7 @@ import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import BadgeIcon from "@mui/icons-material/Badge";
 import { SignifyClient, ready } from "signify-ts";
 import GridViewIcon from "@mui/icons-material/GridView";
+import { useAppDispatch, useAppSelector } from "./app/hooks";
 
 const uploadPath = "/upload";
 const statusPath = "/status";
@@ -57,10 +58,7 @@ const MainComponent = () => {
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
   const [passcode, setPasscode] = useState("");
-  const [status, setStatus] = useState("Connect");
-  const [selectedOption1, setSelectedOption1] = useState(""); // Step 2 Selection
-  const [selectedOption2, setSelectedOption2] = useState(""); // Step 3 Selection
-  const [activeStep, setActiveStep] = useState(0);
+
   const steps = [
     "Insert passcode",
     "Choose an identifier",
@@ -75,6 +73,15 @@ const MainComponent = () => {
   const [aids, setAids] = useState([]);
   const [acdcs, setAcdcs] = useState([]);
 
+  const dispatch = useAppDispatch();
+
+  const currentStep = useAppSelector((state) => state.shared.value);
+  const connectionStatus = useAppSelector((state) => state.shared.status);
+
+
+  const aidOption =  useAppSelector((state) => state.options.aidOption);
+  const acdcOption = useAppSelector((state) => state.options.acdcOption);
+  
   useEffect(() => {
     ready().then(() => {
       console.log("signify client is ready", serverUrl);
