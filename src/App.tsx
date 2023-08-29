@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   AppBar,
   Alert,
@@ -49,9 +49,9 @@ import {
 import { useAuthenticChainedDataContainerContext } from "./contexts/AuthenticChainedDataContainer";
 import MyTable from "./components/MyTable";
 
-const uploadPath = "/upload";
-const statusPath = "/status";
-const verSigPath = "/verify/header";
+import { ACDC, AID, Report } from "./types";
+import { SignifyClient } from "signify-ts";
+import { LOGIN_PATH, UPLOAD_PATH } from "./constants";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -60,17 +60,16 @@ const MainComponent = () => {
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
   const [passcode, setPasscode] = useState("");
-
   const steps = [
     "Insert passcode",
     "Choose an identifier",
     "Choose a credential",
     "Done",
   ];
-  const [modalError, setModalError] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [errorUpload, setErrorUpload] = useState("");
-  const [submitResult, setSubmitResult] = useState("");
+  const [modalError, setModalError] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<Report | null>(null);
+  const [errorUpload, setErrorUpload] = useState<string>("");
+  const [submitResult, setSubmitResult] = useState<string>("");
 
   const { aids, client, setClient, handleCreateAgent, getSelectedAid } =
     useAutonomicIDContext();
@@ -85,27 +84,24 @@ const MainComponent = () => {
   const aidOption = useAppSelector((state) => state.options.aidOption);
   const acdcOption = useAppSelector((state) => state.options.acdcOption);
 
-  // Define the endpoint paths
-  const pingPath = "/ping";
-  const loginPath = "/login";
-
   // Function to handle the API request and response
 
   // Function to perform the ping request
-  async function ping(): Promise<string> {
-    const url = `${SERVER_URL}${pingPath}`;
 
-    // Make the API request using the fetch function
-    const response = await fetch(url);
-    const responseData = await response.json();
+  // async function ping(): Promise<string> {
+  //   const url = `${SERVER_URL}${pingPath}`;
 
-    // Return the pong message
-    return responseData;
-  }
+  //   // Make the API request using the fetch function
+  //   const response = await fetch(url);
+  //   const responseData = await response.json();
+
+  //   // Return the pong message
+  //   return responseData;
+  // }
 
   // Function to perform the login request
   async function login(aid: string, said: string, vlei: string): Promise<any> {
-    const url = `${SERVER_URL}${loginPath}`;
+    const url = `${SERVER_URL}${LOGIN_PATH}`;
 
     // Create the request body object
     const requestBody = {
@@ -139,28 +135,28 @@ const MainComponent = () => {
     setDrawerOpen(open);
   };
 
-  const handleClickOpen = () => {
+  const handleClickOpen = useCallback(() => {
     setOpen(true);
-  };
+  }, [setOpen]);
 
-  const handleClose = () => {
-    if (client !== null && connectionStatus !== "Connected") return;
+  const handleClose = useCallback(() => {
+    if (client !== undefined && connectionStatus !== "Connected") return;
     setOpen(false);
     setModalError("");
-  };
+  }, [client, connectionStatus]);
 
-  const checkHeaderSignatures = async (aid: any, name: any) => {
-    console.log("Checking header signatures");
-    const response_signed = await client!.signedFetch(
-      SERVER_URL,
-      `${verSigPath}`,
-      "GET",
-      null,
-      name
-    );
-    const response_signed_data = await response_signed.json();
-    console.log("header signature verification response", response_signed_data);
-  };
+  // const checkHeaderSignatures = async (aid: any, name: any) => {
+  //   console.log("Checking header signatures");
+  //   const response_signed = await client!.signedFetch(
+  //     SERVER_URL,
+  //     `${VER_SIG_PATH}`,
+  //     "GET",
+  //     null,
+  //     name
+  //   );
+  //   const response_signed_data = await response_signed.json();
+  //   console.log("header signature verification response", response_signed_data);
+  // };
 
   const loginReal = async () => {
     const creds = client!.credentials();
@@ -174,28 +170,31 @@ const MainComponent = () => {
     );
     console.log("logged in result", logged_in);
     if (logged_in.aid === getSelectedAid()!.prefix) {
-      setStatus("Connected");
+      dispatch(setStatus("Connected"));
       setModalError("");
       // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
     } else if (JSON.stringify(logged_in).includes("Exception")) {
-      setStatus("Failed");
+      dispatch(setStatus("Failed"));
       setModalError("Login Failed. Please pick different credential");
     } else {
-      setStatus("Connecting");
+      dispatch(setStatus("Connecting"));
       setModalError("Waiting for verificaiton");
     }
   };
 
-  const renderComponent = (componentName: any) => {
-    //check if the client is not null then render the component otherwise set the drwar to true
-    if (client === null || acdcOption === "") {
-      setDrawerOpen(true);
-      setModalError(`Please connect to the agent first`);
-      setOpen(true);
-      return;
-    }
-    setSelectedComponent(componentName);
-  };
+  const renderComponent = useCallback(
+    (componentName: any) => {
+      //check if the client is not null then render the component otherwise set the drwar to true
+      if (client === undefined || acdcOption === "") {
+        setDrawerOpen(true);
+        setModalError(`Please connect to the agent first`);
+        setOpen(true);
+        return;
+      }
+      setSelectedComponent(componentName);
+    },
+    [client, acdcOption]
+  );
 
   const resetAidSelected = () => {
     dispatch(setStep(1));
@@ -303,17 +302,22 @@ const MainComponent = () => {
             ))}
           </List>
         </div>
-        {client !== null && connectionStatus === "Connected" && (
+        {client != undefined && connectionStatus === "Connected" && (
           <div style={{ marginTop: "auto", textAlign: "center" }}>
             <Divider />
             <List>
               {[getSelectedAid(), getSelectedAcdc()].map((text, index) => (
                 <Tooltip
-                  title={index == 0 ? text?.prefix : text?.sad.d}
+                  title={
+                    index == 0 ? (text as AID)!.prefix : (text as ACDC)!.sad.d
+                  }
                   placement="right"
                   key={index == 0 ? "Identifier" : "Credential"}
                 >
-                  <ListItem key={text} onClick={() => renderComponent(text)}>
+                  <ListItem
+                    key={(text as AID)!.prefix}
+                    onClick={() => renderComponent(text)}
+                  >
                     {index === 0 ? (
                       <ListItemIcon>
                         {" "}
@@ -326,11 +330,13 @@ const MainComponent = () => {
                       </ListItemIcon>
                     )}
                     {index === 0 ? (
-                      <ListItemText primary={reduceString(text?.name)} />
+                      <ListItemText
+                        primary={reduceString((text as AID)?.name)}
+                      />
                     ) : (
                       <ListItemText
                         primary={reduceString(
-                          text?.sad.a.engagementContextRole
+                          (text as ACDC)?.sad.a.engagementContextRole
                         )}
                       />
                     )}
@@ -388,7 +394,7 @@ const MainComponent = () => {
               component="div"
               sx={{ position: "absolute", right: 10, top: 10 }}
               onClick={handleClose}
-              disabled={client !== null && connectionStatus === "Failed"}
+              disabled={client !== undefined && connectionStatus === "Failed"}
             >
               <CloseIcon />
             </IconButton>
@@ -407,7 +413,7 @@ const MainComponent = () => {
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
                 <StepContent>
-                  {index === 0 && client === null && (
+                  {index === 0 && client === undefined && (
                     <>
                       <TextField
                         id="outlined-password-input"
@@ -426,7 +432,7 @@ const MainComponent = () => {
                         color="primary"
                         disabled={passcode.length < 21}
                         onClick={async () => {
-                          handleCreateAgent(passcode);
+                          await handleCreateAgent(passcode);
                         }}
                       >
                         Connect
@@ -462,7 +468,7 @@ const MainComponent = () => {
                         color="primary"
                         disabled={aidOption === ""}
                         onClick={async () => {
-                          handleSelectACDC();
+                          await handleSelectACDC();
                         }}
                       >
                         Next
@@ -562,8 +568,10 @@ const MainComponent = () => {
           </Stepper>
         </DialogContent>
       </Dialog>
-      {client === null && <LandingComponent text="Welcome to EBA portal" />}
-      {selectedComponent === "Check Status" && client !== null && (
+      {client === undefined && (
+        <LandingComponent text="Welcome to EBA portal" />
+      )}
+      {selectedComponent === "Check Status" && client !== undefined && (
         <MyTable
           client={client}
           setSelectedComponent={setSelectedComponent}
@@ -571,7 +579,7 @@ const MainComponent = () => {
           selectedAid={getSelectedAid()}
         />
       )}
-      {selectedComponent === "Upload Report" && client !== null && (
+      {selectedComponent === "Upload Report" && client !== undefined && (
         <DragAndDropUploader
           client={client}
           errorUpload={errorUpload}
@@ -603,13 +611,13 @@ interface TextComponentProps {
   text: string;
 }
 
-const TextComponent: React.FC<TextComponentProps> = ({ text }) => (
-  <Grid item xs={1} lg={1} left={"50%"}>
-    <Box>
-      <Typography> {text}</Typography>
-    </Box>
-  </Grid>
-);
+// const TextComponent: React.FC<TextComponentProps> = ({ text }) => (
+//   <Grid item xs={1} lg={1} left={"50%"}>
+//     <Box>
+//       <Typography> {text}</Typography>
+//     </Box>
+//   </Grid>
+// );
 
 const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
   <Grid item xs={1} lg={1} left={"50%"}>
@@ -626,7 +634,21 @@ const LandingComponent: React.FC<TextComponentProps> = ({ text }) => (
   </Grid>
 );
 
-const DragAndDropUploader = ({
+interface DragAndDropUploaderProps {
+  client: SignifyClient;
+  errorUpload: any;
+  setErrorUpload: (error: string) => void;
+  submitResult: string;
+  setSubmitResult: (result: string) => void;
+  selectedFile: Report | null;
+  setSelectedFile: (file: Report | null) => void;
+  setSelectedComponent: (component: any) => void;
+  resetAidSelected: () => void;
+  selectedAid: AID | undefined;
+  selectedAcdc: any;
+}
+
+const DragAndDropUploader: React.FC<DragAndDropUploaderProps> = ({
   client,
   errorUpload,
   setErrorUpload,
@@ -635,7 +657,7 @@ const DragAndDropUploader = ({
   selectedFile,
   setSelectedFile,
   setSelectedComponent,
-  resetAidSelected,
+  // resetAidSelected,
   selectedAid,
   selectedAcdc,
 }) => {
@@ -683,18 +705,18 @@ const DragAndDropUploader = ({
 
   // Function to perform the upload request
   async function upload(
-    aid: string,
+    aid: AID,
     said: string,
-    report: string
+    report: Report | null
   ): Promise<any> {
     const formData = new FormData();
-    formData.append("upload", report);
+    formData.append("upload", report!.filename);
 
     // // Send signed request
     console.log("Form data is", formData.get("upload"));
     const response_signed = await client.signedFetch(
       SERVER_URL,
-      `${uploadPath}/${aid.prefix}/${said}`,
+      `${UPLOAD_PATH}/${aid.prefix}/${said}`,
       "POST",
       formData,
       aid.name
@@ -711,9 +733,9 @@ const DragAndDropUploader = ({
     setSubmitResult("uploading");
     //wait 2 seconds
     //await new Promise(r => setTimeout(r, 2000));
-    await upload(selectedAid, selectedAcdc, selectedFile);
+    await upload(selectedAid!, selectedAcdc, selectedFile);
 
-    setSubmitResult(`done|${selectedFile.name}`);
+    setSubmitResult(`done|${selectedFile!.filename}`);
     // await new Promise(r => setTimeout(r, 2000));
     // setSubmitResult(`fail|${selectedFile.name}` )
     setSelectedFile(null);
@@ -773,12 +795,12 @@ const DragAndDropUploader = ({
       )}
 
       {submitResult === "uploading" && (
-        <Alert severity="info">Uploading {selectedFile.name}</Alert>
+        <Alert severity="info">Uploading {selectedFile?.filename}</Alert>
       )}
 
       {errorUpload === "" && selectedFile !== null && submitResult === "" && (
         <Alert severity="success">
-          Succesfully loaded report {selectedFile.name}
+          Succesfully loaded report {selectedFile.filename}
           {<br />}
           Submit your report next.
         </Alert>
@@ -800,7 +822,7 @@ const DragAndDropUploader = ({
       >
         {selectedFile ? (
           <>
-            <UploadFile /> <p>Selected File: {selectedFile.name}</p>
+            <UploadFile /> <p>Selected File: {selectedFile.filename}</p>
           </>
         ) : (
           <>
