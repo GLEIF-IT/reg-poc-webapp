@@ -42,19 +42,29 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import BadgeIcon from "@mui/icons-material/Badge";
-import { SignifyClient, ready } from "signify-ts";
 import GridViewIcon from "@mui/icons-material/GridView";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
+import { useAutonomicIDContext } from "./contexts/AutonomicID";
+import {
+  resetAcdcOption,
+  resetAidOption,
+  setAcdcOption,
+  setAidOption,
+} from "./features/options/options-slice";
+import {
+  incrementStep,
+  setStatus,
+  setStep,
+} from "./features/shared/shared-slice";
 
 const uploadPath = "/upload";
 const statusPath = "/status";
 const verSigPath = "/verify/header";
-const signifyUrl = import.meta.env.VITE_SIGNIFY_URL;
-const serverUrl = import.meta.env.VITE_SERVER_URL;
+
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
-  const [client, setClient] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // Open drawer by default
   const [passcode, setPasscode] = useState("");
@@ -69,24 +79,18 @@ const MainComponent = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [errorUpload, setErrorUpload] = useState("");
   const [submitResult, setSubmitResult] = useState("");
-
-  const [aids, setAids] = useState([]);
   const [acdcs, setAcdcs] = useState([]);
+
+  const { aids, client, setClient, handleCreateAgent, getSelectedAid } =
+    useAutonomicIDContext();
 
   const dispatch = useAppDispatch();
 
   const currentStep = useAppSelector((state) => state.shared.value);
   const connectionStatus = useAppSelector((state) => state.shared.status);
 
-
-  const aidOption =  useAppSelector((state) => state.options.aidOption);
+  const aidOption = useAppSelector((state) => state.options.aidOption);
   const acdcOption = useAppSelector((state) => state.options.acdcOption);
-  
-  useEffect(() => {
-    ready().then(() => {
-      console.log("signify client is ready", serverUrl);
-    });
-  }, []);
 
   // Define the endpoint paths
   const pingPath = "/ping";
@@ -96,7 +100,7 @@ const MainComponent = () => {
 
   // Function to perform the ping request
   async function ping(): Promise<string> {
-    const url = `${serverUrl}${pingPath}`;
+    const url = `${SERVER_URL}${pingPath}`;
 
     // Make the API request using the fetch function
     const response = await fetch(url);
@@ -108,7 +112,7 @@ const MainComponent = () => {
 
   // Function to perform the login request
   async function login(aid: string, said: string, vlei: string): Promise<any> {
-    const url = `${serverUrl}${loginPath}`;
+    const url = `${SERVER_URL}${loginPath}`;
 
     // Create the request body object
     const requestBody = {
@@ -147,15 +151,15 @@ const MainComponent = () => {
   };
 
   const handleClose = () => {
-    if (client !== null && status !== "Connected") return;
+    if (client !== null && connectionStatus !== "Connected") return;
     setOpen(false);
     setModalError("");
   };
 
   const checkHeaderSignatures = async (aid: any, name: any) => {
     console.log("Checking header signatures");
-    const response_signed = await client.signedFetch(
-      serverUrl,
+    const response_signed = await client!.signedFetch(
+      SERVER_URL,
       `${verSigPath}`,
       "GET",
       null,
@@ -166,17 +170,17 @@ const MainComponent = () => {
   };
 
   const loginReal = async () => {
-    const creds = client.credentials();
-    let vlei_cesr = await creds.get(selectedOption1, selectedOption2, true);
+    const creds = client!.credentials();
+    let vlei_cesr = await creds.get(aidOption, acdcOption, true);
     console.log("vlei cesr", vlei_cesr);
 
     let logged_in = await login(
-      getSelectedAid().prefix,
-      selectedOption2,
+      getSelectedAid()!.prefix,
+      acdcOption,
       vlei_cesr
     );
     console.log("logged in result", logged_in);
-    if (logged_in.aid === getSelectedAid().prefix) {
+    if (logged_in.aid === getSelectedAid()!.prefix) {
       setStatus("Connected");
       setModalError("");
       // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
@@ -191,7 +195,7 @@ const MainComponent = () => {
 
   const renderComponent = (componentName: any) => {
     //check if the client is not null then render the component otherwise set the drwar to true
-    if (client === null || selectedOption2 === "") {
+    if (client === null || acdcOption === "") {
       setDrawerOpen(true);
       setModalError(`Please connect to the agent first`);
       setOpen(true);
@@ -200,17 +204,8 @@ const MainComponent = () => {
     setSelectedComponent(componentName);
   };
 
-  const getSelectedAid = () => {
-    const aid_found = aids.find((aid) => aid.name === selectedOption1);
-    if (aid_found !== undefined) {
-      return aid_found;
-    }
-    return undefined;
-    return;
-  };
-
   const getSelectedAcdc = () => {
-    const acdc_found = acdcs.find((acdc) => acdc.sad.d === selectedOption2);
+    const acdc_found = acdcs.find((acdc) => acdc.sad.d === acdcOption);
     if (acdc_found !== undefined) {
       return acdc_found;
     }
@@ -218,24 +213,14 @@ const MainComponent = () => {
   };
 
   const resetAidSelected = () => {
-    setActiveStep(1);
+    dispatch(setStep(1));
     handleClickOpen();
-    setSelectedOption1("");
-    setSelectedOption2("");
-    setStatus("Connecting");
+    dispatch(resetAidOption());
+    dispatch(resetAcdcOption());
+    dispatch(setStatus("Connecting"));
     setModalError("Select a new identifier and credential");
   };
 
-  const connectToAgent = async (client: SignifyClient) => {
-    try {
-      await client.connect();
-      await client.state();
-    } catch (e) {
-      await client.boot();
-      await client.connect();
-      await client.state();
-    }
-  };
   return (
     <Box
       display="flex"
@@ -286,16 +271,16 @@ const MainComponent = () => {
               <Circle
                 sx={{
                   color:
-                    status === "Connected"
+                    connectionStatus === "Connected"
                       ? "green"
-                      : status === "Connecting"
+                      : connectionStatus === "Connecting"
                       ? "orange"
                       : "red",
                 }}
               />
             }
           >
-            {status}
+            {connectionStatus}
           </Button>
         </Toolbar>
       </AppBar>
@@ -333,42 +318,40 @@ const MainComponent = () => {
             ))}
           </List>
         </div>
-        {client !== null && status === "Connected" && (
+        {client !== null && connectionStatus === "Connected" && (
           <div style={{ marginTop: "auto", textAlign: "center" }}>
             <Divider />
             <List>
-              {[getSelectedAid(), getSelectedAcdc(selectedOption2)].map(
-                (text, index) => (
-                  <Tooltip
-                    title={index == 0 ? text?.prefix : text?.sad.d}
-                    placement="right"
-                    key={index == 0 ? "Identifier" : "Credential"}
-                  >
-                    <ListItem key={text} onClick={() => renderComponent(text)}>
-                      {index === 0 ? (
-                        <ListItemIcon>
-                          {" "}
-                          <FingerprintIcon />{" "}
-                        </ListItemIcon>
-                      ) : (
-                        <ListItemIcon>
-                          {" "}
-                          <BadgeIcon />
-                        </ListItemIcon>
-                      )}
-                      {index === 0 ? (
-                        <ListItemText primary={reduceString(text?.name)} />
-                      ) : (
-                        <ListItemText
-                          primary={reduceString(
-                            text?.sad.a.engagementContextRole
-                          )}
-                        />
-                      )}
-                    </ListItem>
-                  </Tooltip>
-                )
-              )}
+              {[getSelectedAid(), getSelectedAcdc()].map((text, index) => (
+                <Tooltip
+                  title={index == 0 ? text?.prefix : text?.sad.d}
+                  placement="right"
+                  key={index == 0 ? "Identifier" : "Credential"}
+                >
+                  <ListItem key={text} onClick={() => renderComponent(text)}>
+                    {index === 0 ? (
+                      <ListItemIcon>
+                        {" "}
+                        <FingerprintIcon />{" "}
+                      </ListItemIcon>
+                    ) : (
+                      <ListItemIcon>
+                        {" "}
+                        <BadgeIcon />
+                      </ListItemIcon>
+                    )}
+                    {index === 0 ? (
+                      <ListItemText primary={reduceString(text?.name)} />
+                    ) : (
+                      <ListItemText
+                        primary={reduceString(
+                          text?.sad.a.engagementContextRole
+                        )}
+                      />
+                    )}
+                  </ListItem>
+                </Tooltip>
+              ))}
 
               <ListItem
                 key="picknew"
@@ -404,23 +387,23 @@ const MainComponent = () => {
               <Circle
                 sx={{
                   color:
-                    status === "Connected"
+                    connectionStatus === "Connected"
                       ? "green"
-                      : status === "Connecting"
+                      : connectionStatus === "Connecting"
                       ? "orange"
                       : "red",
                 }}
               />
             }
           >
-            {status}
+            {connectionStatus}
           </Button>
           <Tooltip title="Close" key={"close"}>
             <IconButton
               component="div"
               sx={{ position: "absolute", right: 10, top: 10 }}
               onClick={handleClose}
-              disabled={client !== null && status === "Failed"}
+              disabled={client !== null && connectionStatus === "Failed"}
             >
               <CloseIcon />
             </IconButton>
@@ -434,7 +417,7 @@ const MainComponent = () => {
               <Typography variant="body2">{modalError}</Typography>
             </Alert>
           )}
-          <Stepper activeStep={activeStep} orientation="vertical">
+          <Stepper activeStep={currentStep} orientation="vertical">
             {steps.map((label, index) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -458,27 +441,7 @@ const MainComponent = () => {
                         color="primary"
                         disabled={passcode.length < 21}
                         onClick={async () => {
-                          setModalError("");
-                          setStatus("Connecting");
-                          const client = new SignifyClient(
-                            signifyUrl,
-                            passcode
-                          );
-                          setClient(client);
-                          await connectToAgent(client);
-                          const identifiers = client.identifiers();
-                          const _ids = await identifiers.list();
-                          console.log("Identifiers list", _ids);
-                          if (_ids.length === 0) {
-                            setModalError(
-                              "No identifiers found. Please add one from the agent"
-                            );
-                            setStatus("Connecting");
-                            return;
-                          } else {
-                            setAids(_ids);
-                            setActiveStep((prevStep) => prevStep + 1);
-                          }
+                          handleCreateAgent(passcode);
                         }}
                       >
                         Connect
@@ -491,8 +454,8 @@ const MainComponent = () => {
                       <RadioGroup
                         aria-label="step2"
                         name="step2"
-                        value={selectedOption1}
-                        onChange={(e) => setSelectedOption1(e.target.value)}
+                        value={aidOption}
+                        onChange={(e) => dispatch(setAidOption(e.target.value))}
                       >
                         {aids.map((aid, index) => (
                           <Tooltip
@@ -512,26 +475,23 @@ const MainComponent = () => {
                       <Button
                         variant="contained"
                         color="primary"
-                        disabled={selectedOption1 === ""}
+                        disabled={aidOption === ""}
                         onClick={async () => {
                           setModalError("");
-                          const credentials = client.credentials();
-                          const _creds = await credentials.list(
-                            selectedOption1,
-                            {
-                              filter: {
-                                "-s": {
-                                  $eq: "EEy9PkikFcANV1l7EHukCeXqrzT1hNZjGlUk7wuMO5jw",
-                                },
+                          const credentials = client!.credentials();
+                          const _creds = await credentials.list(aidOption, {
+                            filter: {
+                              "-s": {
+                                $eq: "EEy9PkikFcANV1l7EHukCeXqrzT1hNZjGlUk7wuMO5jw",
                               },
-                            }
-                          );
+                            },
+                          });
                           let saids: string[] = [];
                           _creds.forEach((cred) => {
                             saids.push(cred);
                           });
 
-                          setActiveStep((prevStep) => prevStep + 1);
+                          dispatch(incrementStep());
                           setAcdcs(saids);
                         }}
                       >
@@ -545,8 +505,10 @@ const MainComponent = () => {
                       <RadioGroup
                         aria-label="step3"
                         name="step3"
-                        value={selectedOption2}
-                        onChange={(e) => setSelectedOption2(e.target.value)}
+                        value={acdcOption}
+                        onChange={(e) =>
+                          dispatch(setAcdcOption(e.target.value))
+                        }
                       >
                         {acdcs.map((acdc, index) => (
                           <Tooltip
@@ -566,9 +528,9 @@ const MainComponent = () => {
                       <Button
                         variant="contained"
                         color="primary"
-                        disabled={selectedOption2 === ""}
+                        disabled={acdcOption === ""}
                         onClick={async () => {
-                          setActiveStep((prevStep) => prevStep + 1);
+                          dispatch(incrementStep());
                           await loginReal();
                         }}
                       >
@@ -579,7 +541,7 @@ const MainComponent = () => {
 
                   {index === 3 && (
                     <>
-                      {status === "Connecting" && (
+                      {connectionStatus === "Connecting" && (
                         <CircularProgress sx={{ marginLeft: "35%" }} />
                       )}
 
@@ -589,7 +551,7 @@ const MainComponent = () => {
                         paddingTop={2}
                         //make the items inside of this with some space between them
                       >
-                        {status === "Failed" && (
+                        {connectionStatus === "Failed" && (
                           <Button
                             variant="contained"
                             color="primary"
@@ -606,14 +568,14 @@ const MainComponent = () => {
                           color="error"
                           sx={{ m: 1 }}
                           disabled={
-                            status === "Connecting" || status === "Failed"
+                            connectionStatus === "Connecting" || connectionStatus === "Failed"
                           }
                           onClick={() => {
-                            setActiveStep(0);
+                            dispatch(setStep(0));
                             setClient(null);
-                            setSelectedOption1("");
-                            setSelectedOption2("");
-                            setStatus("Connect");
+                            dispatch(resetAidOption());
+                            dispatch(resetAcdcOption());
+                            dispatch(setStatus("Connect"));
                             setPasscode("");
                             handleClose();
                           }}
@@ -634,7 +596,7 @@ const MainComponent = () => {
         <MyTable
           client={client}
           setSelectedComponent={setSelectedComponent}
-          selectedAcdc={selectedOption2}
+          selectedAcdc={acdcOption}
           selectedAid={getSelectedAid()}
         />
       )}
@@ -649,7 +611,7 @@ const MainComponent = () => {
           setSelectedFile={setSelectedFile}
           setSelectedComponent={setSelectedComponent}
           resetAidSelected={resetAidSelected}
-          selectedAcdc={selectedOption2}
+          selectedAcdc={acdcOption}
           selectedAid={getSelectedAid()}
         />
       )}
@@ -760,7 +722,7 @@ const DragAndDropUploader = ({
     // // Send signed request
     console.log("Form data is", formData.get("upload"));
     const response_signed = await client.signedFetch(
-      serverUrl,
+      SERVER_URL,
       `${uploadPath}/${aid.prefix}/${said}`,
       "POST",
       formData,
@@ -988,7 +950,7 @@ const MyTable = ({
   async function checkUpload(aid): Promise<any> {
     // // Send signed request
     const response_signed = await client.signedFetch(
-      serverUrl,
+      SERVER_URL,
       `${statusPath}/${aid.prefix}`,
       "GET",
       null,
