@@ -395,7 +395,7 @@ const MainComponent = () => {
                               setStatus('Connecting')
                               return
                             } else {
-                              setAids(_ids)
+                              setAids(_ids.aids)
                               setActiveStep(prevStep => prevStep + 1)
                             }
                           }
