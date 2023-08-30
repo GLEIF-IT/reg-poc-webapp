@@ -1,10 +1,21 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+import { store } from "./app/store";
+import { Provider } from "react-redux";
+import { AutonomicIDContextProvider } from "./contexts/AutonomicID.tsx";
+import { AuthenticChainedDataContainerContextProvider } from "./contexts/AuthenticChainedDataContainer.tsx";
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+    <Provider store={store}>
+      <AutonomicIDContextProvider>
+        <AuthenticChainedDataContainerContextProvider>
+          <App />
+        </AuthenticChainedDataContainerContextProvider>
+      </AutonomicIDContextProvider>
+    </Provider>
+  </React.StrictMode>
+);
