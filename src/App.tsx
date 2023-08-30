@@ -41,6 +41,8 @@ import {
 } from "./features/options/options-slice";
 import {
   incrementStep,
+  setModalError,
+  setModalOpen,
   setStatus,
   setStep,
 } from "./features/shared/shared-slice";
@@ -58,7 +60,6 @@ import LandingComponent from "./components/LandingComponent";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const MainComponent = () => {
-
   const steps = [
     "Insert passcode",
     "Choose an identifier",
@@ -67,23 +68,30 @@ const MainComponent = () => {
   ];
 
   const [selectedComponent, setSelectedComponent] = useState(null);
-  const [open, setOpen] = useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false); // Open drawer by default
   const [passcode, setPasscode] = useState<string>("");
-  const [modalError, setModalError] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<Report | null>(null);
   const [errorUpload, setErrorUpload] = useState<string>("");
   const [submitResult, setSubmitResult] = useState<string>("");
 
-  const { aids, client, setClient, handleCreateAgent, getSelectedAid } =
-    useAutonomicIDContext();
+  const {
+    aids,
+    client,
+    setClient,
+    handleCreateAgent,
+    getSelectedAid,
+    resetAidSelected,
+  } = useAutonomicIDContext();
+
   const { acdcs, handleSelectACDC, getSelectedAcdc } =
     useAuthenticChainedDataContainerContext();
 
   const dispatch = useAppDispatch();
 
-  const currentStep = useAppSelector((state) => state.shared.value);
+  const currentStep = useAppSelector((state) => state.shared.step);
   const connectionStatus = useAppSelector((state) => state.shared.status);
+  const modalOpen = useAppSelector((state) => state.shared.modalOpen);
+  const modalError = useAppSelector((state) => state.shared.modalError);
 
   const aidOption = useAppSelector((state) => state.options.aidOption);
   const acdcOption = useAppSelector((state) => state.options.acdcOption);
@@ -140,13 +148,13 @@ const MainComponent = () => {
   };
 
   const handleClickOpen = useCallback(() => {
-    setOpen(true);
-  }, [setOpen]);
+    dispatch(setModalOpen(true));
+  }, [modalOpen]);
 
   const handleClose = useCallback(() => {
     if (client !== undefined && connectionStatus !== "Connected") return;
-    setOpen(false);
-    setModalError("");
+    dispatch(setModalOpen(false));
+    dispatch(setModalError(""));
   }, [client, connectionStatus]);
 
   // const checkHeaderSignatures = async (aid: any, name: any) => {
@@ -175,14 +183,14 @@ const MainComponent = () => {
     console.log("logged in result", logged_in);
     if (logged_in.aid === getSelectedAid()!.prefix) {
       dispatch(setStatus("Connected"));
-      setModalError("");
+      dispatch(setModalError(""));
       // await checkHeaderSignatures(getSelectedAid().prefix,getSelectedAid().name);
     } else if (JSON.stringify(logged_in).includes("Exception")) {
       dispatch(setStatus("Failed"));
-      setModalError("Login Failed. Please pick different credential");
+      dispatch(setModalError("Login Failed. Please pick different credential"));
     } else {
       dispatch(setStatus("Connecting"));
-      setModalError("Waiting for verificaiton");
+      dispatch(setModalError("Waiting for verificaiton"));
     }
   };
 
@@ -191,23 +199,14 @@ const MainComponent = () => {
       //check if the client is not null then render the component otherwise set the drwar to true
       if (client === undefined || acdcOption === "") {
         setDrawerOpen(true);
-        setModalError(`Please connect to the agent first`);
-        setOpen(true);
+        dispatch(setModalError(`Please connect to the agent first`));
+        dispatch(setModalOpen(true));
         return;
       }
       setSelectedComponent(componentName);
     },
     [client, acdcOption]
   );
-
-  const resetAidSelected = () => {
-    dispatch(setStep(1));
-    handleClickOpen();
-    dispatch(resetAidOption());
-    dispatch(resetAcdcOption());
-    dispatch(setStatus("Connecting"));
-    setModalError("Select a new identifier and credential");
-  };
 
   return (
     <Box
@@ -368,7 +367,11 @@ const MainComponent = () => {
           </div>
         )}
       </Drawer>
-      <Dialog open={open} onClose={handleClose} disableEscapeKeyDown={true}>
+      <Dialog
+        open={modalOpen}
+        onClose={handleClose}
+        disableEscapeKeyDown={true}
+      >
         <DialogTitle>
           <Button
             sx={{

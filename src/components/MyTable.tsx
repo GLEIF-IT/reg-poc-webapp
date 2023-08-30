@@ -18,7 +18,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
-import { SERVER_URL } from "../constants";
+import { SERVER_URL, STATUS_PATH } from "../constants";
 import { AID, Report } from "../types";
 import { SignifyClient } from "signify-ts";
 
@@ -40,9 +40,7 @@ const MyTable: React.FC<MyTableProps> = ({
   );
   const [openModalTable, setOpenModalTable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const statusPath = "/status";
-
+  
   const _fakedata: Report[] = [
     {
       filename: "File 1",
@@ -117,7 +115,7 @@ const MyTable: React.FC<MyTableProps> = ({
     // // Send signed request
     const response_signed = await client.signedFetch(
       SERVER_URL,
-      `${statusPath}/${aid.prefix}`,
+      `${STATUS_PATH}/${aid.prefix}`,
       "GET",
       null,
       aid.name

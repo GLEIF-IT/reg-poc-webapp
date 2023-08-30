@@ -10,8 +10,20 @@ import {
 import { SignifyClient, ready } from "signify-ts";
 
 import { AID } from "../types";
-import { incrementStep, setStatus } from "../features/shared/shared-slice";
+import {
+  incrementStep,
+  setModalError,
+  setModalOpen,
+  setStatus,
+  setStep,
+} from "../features/shared/shared-slice";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+
+import {
+  resetAcdcOption,
+  resetAidOption,
+} from "../features/options/options-slice";
+
 import { SERVER_URL, SIGNIFY_URL } from "../constants";
 
 interface IContext {
@@ -21,6 +33,7 @@ interface IContext {
   setClient: any;
   handleCreateAgent: (passcode: string) => Promise<void>;
   getSelectedAid: () => AID | undefined;
+  resetAidSelected: () => void;
 }
 
 export const AutonomicIDContext = createContext<IContext>({} as IContext);
@@ -35,6 +48,7 @@ export function AutonomicIDContextProvider({
   const [aids, setAids] = useState<AID[]>([]);
 
   const aidOption = useAppSelector((state) => state.options.aidOption);
+  const modalOpen = useAppSelector((state) => state.shared.modalOpen);
 
   useEffect(() => {
     ready().then(() => {
@@ -46,7 +60,7 @@ export function AutonomicIDContextProvider({
 
   const handleCreateAgent = useCallback(
     async (passcode: string) => {
-      // setModalError("");
+      dispatch(setModalError(""));
       try {
         setPending(true);
         dispatch(setStatus("Connecting"));
@@ -90,6 +104,19 @@ export function AutonomicIDContextProvider({
     return undefined;
   }, [aids, aidOption]);
 
+  const handleClickOpen = useCallback(() => {
+    dispatch(setModalOpen(true));
+  }, [modalOpen]);
+  
+  const resetAidSelected = useCallback(() => {
+    dispatch(setStep(1));
+    handleClickOpen();
+    dispatch(resetAidOption());
+    dispatch(resetAcdcOption());
+    dispatch(setStatus("Connecting"));
+    dispatch(setModalError("Select a new identifier and credential"));
+  }, []);
+
   const value = useMemo(
     () => ({
       pending,
@@ -98,8 +125,17 @@ export function AutonomicIDContextProvider({
       setClient,
       handleCreateAgent,
       getSelectedAid,
+      resetAidSelected,
     }),
-    [pending, client, aids, setClient, handleCreateAgent, getSelectedAid]
+    [
+      pending,
+      client,
+      aids,
+      setClient,
+      handleCreateAgent,
+      getSelectedAid,
+      resetAidSelected,
+    ]
   );
 
   return (
