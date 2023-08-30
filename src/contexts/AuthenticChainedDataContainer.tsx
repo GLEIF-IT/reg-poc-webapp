@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useAutonomicIDContext } from "./AutonomicID";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { incrementStep } from "../features/shared/shared-slice";
+import { incrementStep } from "../features/auth/auth-slice";
 
 import { ACDC } from "../types";
 

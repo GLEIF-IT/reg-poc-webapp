@@ -16,7 +16,7 @@ import {
   setModalOpen,
   setStatus,
   setStep,
-} from "../features/shared/shared-slice";
+} from "../features/auth/auth-slice";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 
 import {
@@ -48,7 +48,7 @@ export function AutonomicIDContextProvider({
   const [aids, setAids] = useState<AID[]>([]);
 
   const aidOption = useAppSelector((state) => state.options.aidOption);
-  const modalOpen = useAppSelector((state) => state.shared.modalOpen);
+  const modalOpen = useAppSelector((state) => state.auth.modalOpen);
 
   useEffect(() => {
     ready().then(() => {

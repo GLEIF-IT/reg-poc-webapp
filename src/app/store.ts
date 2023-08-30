@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import sharedReducer from "../features/shared/shared-slice";
+import authReducer from "../features/auth/auth-slice";
 import optionsReducer from "../features/options/options-slice";
 
 export const store = configureStore({
   reducer: {
-    shared: sharedReducer,
+    auth: authReducer,
     options: optionsReducer,
   },
 });

@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+
 import { useEffect, useState } from "react";
 import { SERVER_URL, STATUS_PATH } from "../constants";
 import { AID, Report } from "../types";
@@ -40,7 +41,7 @@ const MyTable: React.FC<MyTableProps> = ({
   );
   const [openModalTable, setOpenModalTable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   const _fakedata: Report[] = [
     {
       filename: "File 1",

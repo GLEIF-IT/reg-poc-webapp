@@ -45,7 +45,7 @@ import {
   setModalOpen,
   setStatus,
   setStep,
-} from "./features/shared/shared-slice";
+} from "./features/auth/auth-slice";
 
 import { useAutonomicIDContext } from "./contexts/AutonomicID";
 import { useAuthenticChainedDataContainerContext } from "./contexts/AuthenticChainedDataContainer";
@@ -88,10 +88,10 @@ const MainComponent = () => {
 
   const dispatch = useAppDispatch();
 
-  const currentStep = useAppSelector((state) => state.shared.step);
-  const connectionStatus = useAppSelector((state) => state.shared.status);
-  const modalOpen = useAppSelector((state) => state.shared.modalOpen);
-  const modalError = useAppSelector((state) => state.shared.modalError);
+  const currentStep = useAppSelector((state) => state.auth.step);
+  const connectionStatus = useAppSelector((state) => state.auth.status);
+  const modalOpen = useAppSelector((state) => state.auth.modalOpen);
+  const modalError = useAppSelector((state) => state.auth.modalError);
 
   const aidOption = useAppSelector((state) => state.options.aidOption);
   const acdcOption = useAppSelector((state) => state.options.acdcOption);
