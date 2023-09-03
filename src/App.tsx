@@ -390,12 +390,12 @@ const MainComponent = () => {
                             const identifiers = client.identifiers()
                             const _ids = await identifiers.list()
                             console.log("Identifiers list",_ids)
-                            if (_ids.length === 0) {
+                            if (_ids.aids.length === 0) {
                               setModalError('No identifiers found. Please add one from the agent')
                               setStatus('Connecting')
                               return
                             } else {
-                              setAids(_ids)
+                              setAids(_ids.aids)
                               setActiveStep(prevStep => prevStep + 1)
                             }
                           }
